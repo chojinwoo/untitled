@@ -48,14 +48,17 @@ public class Decide {
                 System.out.println("판매금액 주입");
                 price.put(currency + "price", ask_price1);
                 price.put(currency+"search", "3");
+                price.put(currency+"cnt", "0");
             } else {
                 String search = config.getString("search");
                 if (search.equals("1")) {
                     price.put(currency + "price", bid_price1);
                     price.put(currency + "search", "2");
+                    price.put(currency+"cnt", "0");
                 } else if (search.equals("2")) {
                     price.put(currency + "price", ask_price1);
                     price.put(currency + "search", "3");
+                    price.put(currency+"cnt", "0");
                 }
             }
 
@@ -67,18 +70,25 @@ public class Decide {
                     if(Integer.parseInt(min_money) > Integer.parseInt(ask_price1)) {
                         System.out.println("1% 하락");
                         price.put(currency+"price", ask_price1);
-                    } else if(Integer.parseInt(max_money) < Integer.parseInt(ask_price1)) {
-                        System.out.println("구매 1%상승");
-                        System.out.println("SUCCESS 구매 프로세서");
-                        boolean flag = call.buy(currency, ask_price1, Util.krwToUnits(currency, myKrw, ask_price1));
-                        if(!flag) {
-                            System.out.println("구매 실패");
-                            int avaCnt = call.getAvaCnt(config); /* 구매할 비트코인종류의 카운트 */
-                            String krw = String.valueOf(Integer.parseInt(myKrw) / avaCnt);
-                            call.buy(currency, ask_price2, Util.krwToUnits(currency, krw, ask_price2));
+                        price.put(currency+"cnt", String.valueOf(Integer.parseInt((String)price.get(currency+"cnt")) + 1));
+                    }
+                } else {
+
+                    if(Integer.parseInt(max_money) < Integer.parseInt(ask_price1)) {
+                        if(Integer.parseInt((String)price.get(currency+"cnt")) < 1) {
+                            System.out.println("구매 1%상승");
+                            System.out.println("SUCCESS 구매 프로세서");
+                            boolean flag = call.buy(currency, ask_price1, Util.krwToUnits(currency, myKrw, ask_price1));
+                            if (!flag) {
+                                System.out.println("구매 실패");
+                                int avaCnt = call.getAvaCnt(config); /* 구매할 비트코인종류의 카운트 */
+                                String krw = String.valueOf(Integer.parseInt(myKrw) / avaCnt);
+                                call.buy(currency, ask_price2, Util.krwToUnits(currency, krw, ask_price2));
+                            }
+                            price.put(currency + "price", bid_price1);
+                            price.put(currency + "search", "2");
                         }
-                        price.put(currency+"price", bid_price1);
-                        price.put(currency+"search", "2");
+                        price.put(currency+"cnt", "0");
                     }
                 }
             } else if (currency_search.equals("2")) {
