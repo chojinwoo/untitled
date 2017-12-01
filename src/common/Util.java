@@ -85,7 +85,6 @@ public class Util {
 		return string.toString();
     }
 	public static String krwToUnits(String currency, String myMoney, String price) {
-
 		double units  = Integer.parseInt(myMoney) / Double.parseDouble(price);
 		NumberFormat nf = NumberFormat.getInstance();
 		nf.setMaximumFractionDigits(getDecimal(currency));

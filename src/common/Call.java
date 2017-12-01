@@ -30,7 +30,6 @@ public class Call {
                 rgParams.put("searchGb", "0");
                 rgParams.put("currency", currency);
                 result = api.callApi("/info/user_transactions", rgParams);
-                System.out.println(result);
             } else if(alias.equals("OR")) {
                 result = api.callApi("/info/orders", rgParams);
             } else if(alias.equals("OD_ASK")) {
@@ -69,7 +68,6 @@ public class Call {
                 JSONObject o = uta.getJSONObject(i);
                 String search = o.getString("search");
                 if(search.equals("1") || search.equals("2")) {
-                    System.out.print(o);
                     dateMap.put(o.getString("transfer_date"),o.getString(currency.toLowerCase()+"1krw"));
                     searchMap.put(o.getString("transfer_date"),search);
                     dateList.add(o.getString("transfer_date"));
@@ -102,8 +100,8 @@ public class Call {
                 askList.add(jo.getString("price"));
                 quantity.put(jo.getString("price"), jo.getString("quantity"));
             }
-            DescendingStr descending = new DescendingStr();
-            Collections.sort(askList, descending);
+            AscendingStr ascendingStr= new AscendingStr();
+            Collections.sort(askList, ascendingStr);
 
             JSONArray putAr = new JSONArray();
             JSONObject pjo = new JSONObject();
@@ -122,8 +120,8 @@ public class Call {
                 bidList.add(jo.getString("price"));
                 quantity.put(jo.getString("price"), jo.getString("quantity"));
             }
-            AscendingStr ascendingStr = new AscendingStr();
-            Collections.sort(bidList, ascendingStr);
+            DescendingStr descendingStr = new DescendingStr();
+            Collections.sort(bidList, descendingStr);
             putAr = new JSONArray();
             pjo = new JSONObject();
             pjo.put("price", bidList.get(0));
@@ -155,37 +153,49 @@ public class Call {
         return config;
     }
 
-    public boolean sell(String currency, String bidPrice, String units) {
-        boolean flag = false;
-        HashMap<String, String> rgParams = new HashMap<String, String>();
-        rgParams.put("order_currency", currency);
-        rgParams.put("payment_currency", "KRW");
-        rgParams.put("units", units);
-        rgParams.put("price", String.valueOf(bidPrice));
-        rgParams.put("type", "ask");
-        result = api.callApi("/trade/place", rgParams);
-        System.out.println("판매 result : " + result);
-        JSONObject jo = new JSONObject(result);
+    public int sell(String currency, String bidPrice, String units) {
+        int flag = 2;
+        System.out.println("판매 수량 : " + units);
+        if(units.equals("0")) {
+            System.out.println("수량 부족");
+            flag = 3;
+        } else {
+            HashMap<String, String> rgParams = new HashMap<String, String>();
+            rgParams.put("order_currency", currency);
+            rgParams.put("payment_currency", "KRW");
+            rgParams.put("units", units);
+            rgParams.put("price", String.valueOf(bidPrice));
+            rgParams.put("type", "ask");
+            String rr = api.callApi("/trade/place", rgParams);
+            System.out.println("판매 result : " + rr);
+            JSONObject rrJO = new JSONObject(rr);
 
-        if(jo.getString("status").equals("0000")) {
-            flag = true;
+            if (rrJO.getString("status").equals("0000")) {
+                flag = 1;
+            }
         }
         return flag;
     }
 
-    public boolean buy(String currency, String askPrice, String units) {
-        boolean flag = false;
-        HashMap<String, String> rgParams = new HashMap<String, String>();
-        rgParams.put("order_currency", currency);
-        rgParams.put("payment_currency", "KRW");
-        rgParams.put("units", units);
-        rgParams.put("price", String.valueOf(askPrice));
-        rgParams.put("type", "bid");
-        result = api.callApi("/trade/place", rgParams);
-        JSONObject jo = new JSONObject(result);
-        System.out.println("구매 result : " + result);
-        if(jo.getString("status").equals("0000")) {
-            flag = true;
+    public int buy(String currency, String askPrice, String units) {
+        System.out.println("구매 수량 : " + units);
+        int  flag = 2;
+        if(units.equals("0")) {
+            System.out.println("금액 부족");
+            flag = 3;
+        } else {
+            HashMap<String, String> rgParams = new HashMap<String, String>();
+            rgParams.put("order_currency", currency);
+            rgParams.put("payment_currency", "KRW");
+            rgParams.put("units", units);
+            rgParams.put("price", String.valueOf(askPrice));
+            rgParams.put("type", "bid");
+            String rr = api.callApi("/trade/place", rgParams);
+            JSONObject rrJO = new JSONObject(rr);
+            if (rrJO.getString("status").equals("0000")) {
+                System.out.println("구매 결과 진입");
+                flag = 1;
+            }
         }
         return flag;
     }
