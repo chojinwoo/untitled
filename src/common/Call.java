@@ -27,8 +27,10 @@ public class Call {
 
         try {
             if(alias.equals("UT")) {
+                rgParams.put("searchGb", "0");
                 rgParams.put("currency", currency);
                 result = api.callApi("/info/user_transactions", rgParams);
+                System.out.println(result);
             } else if(alias.equals("OR")) {
                 result = api.callApi("/info/orders", rgParams);
             } else if(alias.equals("OD_ASK")) {
@@ -38,6 +40,7 @@ public class Call {
                 rgParams.put("type", "bid");
                 result = api.callApi("/info/order_detail", rgParams);
             } else if(alias.equals("BL")) {
+                rgParams.put("currency", currency);
                 result = api.callApi("/info/balance", rgParams);
             } else if (alias.equals("OB")) {
                 result = api.callApi("/public/orderbook/"+currency, rgParams);
@@ -58,7 +61,6 @@ public class Call {
 
         try {
             JSONObject ut = getResult("UT", currency);
-            System.out.println(ut);
             JSONArray uta = ut.getJSONArray("data");
             HashMap dateMap = new HashMap();
             HashMap searchMap = new HashMap();
@@ -67,7 +69,8 @@ public class Call {
                 JSONObject o = uta.getJSONObject(i);
                 String search = o.getString("search");
                 if(search.equals("1") || search.equals("2")) {
-                    dateMap.put(o.getString("transfer_date"),o.getString("btc1krw"));
+                    System.out.print(o);
+                    dateMap.put(o.getString("transfer_date"),o.getString(currency.toLowerCase()+"1krw"));
                     searchMap.put(o.getString("transfer_date"),search);
                     dateList.add(o.getString("transfer_date"));
                 }
@@ -135,9 +138,9 @@ public class Call {
             /*지갑 정보 정의*/
             JSONObject bl = getResult("BL", currency);
             JSONObject bljo = bl.getJSONObject("data");
-            String avacoin = bljo.getString("available_btc"); /*잔여 코인*/
+            String avacoin = bljo.getString("available_"+currency.toLowerCase()); /*잔여 코인*/
             int avakrw = bljo.getInt("available_krw"); /*잔여 금액*/
-            String usecoin = bljo.getString("in_use_btc"); /*사용 코인*/
+            String usecoin = bljo.getString("in_use_"+currency.toLowerCase()); /*사용 코인*/
             int usekrw = bljo.getInt("in_use_krw"); /*사용 금액*/
             config.put("avacoin", avacoin );
             config.put("avakrw", avakrw );

@@ -53,20 +53,30 @@ public class Main {
     public static void main(String args[]) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHH");
         try {
-            File file = new File("log_"+sdf.format(new Date())+".txt");
+            File file = new File("logs/log_"+sdf.format(new Date())+".txt");
             PrintStream printStream = new PrintStream(new FileOutputStream(file));
             PrintStream sysout = System.out;
             System.setOut(printStream);
 
+            /*설정값 정의*/
+
+            priceMap.put("ETH_max_per", 2.0);
+            priceMap.put("ETH_min_per", 2.0);
+            priceMap.put("BTC_max_per", 1.0);
+            priceMap.put("BTC_min_per", 1.0);
+            priceMap.put("BCH_max_per", 1.5);
+            priceMap.put("BCH_min_per", 1.5);
+            useCurrency = new JSONArray();
+            useCurrency.put("BTC");
+//            useCurrency.put("ETH");
+//                useCurrency.put("BCH");
+
+            /*////*/
             while(true) {
                 List<Thread> thread = new ArrayList();
-                thread.add(new Thread(btc));
+//                thread.add(new Thread(btc));
                 thread.add(new Thread(eth));
 //                thread.add(new Thread(bch));
-                useCurrency = new JSONArray();
-                useCurrency.put("BTC");
-                useCurrency.put("ETH");
-//                useCurrency.put("BCH");
                 loopCnt = thread.size();
                 for(int i=0; i<thread.size(); i++) {
                     thread.get(i).start();
