@@ -72,12 +72,12 @@ public class Decide {
                         if(Integer.parseInt((String)price.get(currency+"cnt")) < 1) {
                             System.out.println("구매 1%상승");
                             System.out.println("SUCCESS 구매 프로세서");
+                            int avaCnt = call.getAvaCnt(config); /* 구매할 비트코인종류의 카운트 */
+                            String krw = String.valueOf(Integer.parseInt(myKrw) / avaCnt);
                             boolean flag = call.buy(currency, ask_price1, Util.krwToUnits(currency, myKrw, ask_price1));
 
                             if (!flag) {
                                 System.out.println("구매 실패");
-                                int avaCnt = call.getAvaCnt(config); /* 구매할 비트코인종류의 카운트 */
-                                String krw = String.valueOf(Integer.parseInt(myKrw) / avaCnt);
                                 flag = call.buy(currency, ask_price2, Util.krwToUnits(currency, krw, ask_price2));
                             }
 
