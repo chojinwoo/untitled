@@ -5,8 +5,8 @@ import org.json.JSONObject;
 import java.util.*;
 
 public class Decide {
-    private double min_per = 0.5;
-    private double max_per = 0.5;
+    private double min_per = 1;
+    private double max_per = 1;
     Call call = new Call();
 
     public int pattern1(JSONObject config, HashMap price) {
@@ -46,8 +46,8 @@ public class Decide {
             System.out.println(currency + "초기값"); /* 1: 구매 2: 판매*/
             if(currency_price == null){
                 System.out.println("판매금액 주입");
-                price.put(currency + "price", bid_price1);
-                price.put(currency+"search", "2");
+                price.put(currency + "price", ask_price1);
+                price.put(currency+"search", "3");
             } else {
                 String search = config.getString("search");
                 if (search.equals("1")) {
