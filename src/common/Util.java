@@ -6,8 +6,10 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.text.NumberFormat;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -80,4 +82,22 @@ public class Util {
 	
 		return string.toString();
     }
+	public static String krwToUnits(int myMoney, int price) {
+
+		double units  = myMoney / Double.parseDouble(String.valueOf(price));
+		NumberFormat nf = NumberFormat.getInstance();
+		nf.setMaximumFractionDigits(3);
+		nf.setRoundingMode(RoundingMode.DOWN);
+		nf.setGroupingUsed(true);
+		return nf.format(units);
+	}
+
+	public static String getUnits(String units) {
+
+		NumberFormat nf = NumberFormat.getInstance();
+		nf.setMaximumFractionDigits(3);
+		nf.setRoundingMode(RoundingMode.DOWN);
+		nf.setGroupingUsed(true);
+		return nf.format(units);
+	}
 }

@@ -55,6 +55,7 @@ public class Call {
 
         try {
             JSONObject ut = getResult("UT", currency);
+            System.out.println(ut);
             JSONArray uta = ut.getJSONArray("data");
             HashMap dateMap = new HashMap();
             HashMap searchMap = new HashMap();
@@ -143,36 +144,37 @@ public class Call {
         return config;
     }
 
-    public boolean sell(String currency, int price, double units) {
-        boolean flag = true;
+    public boolean sell(String currency, int bidPrice, String units) {
+        boolean flag = false;
         HashMap<String, String> rgParams = new HashMap<String, String>();
         rgParams.put("order_currency", currency);
         rgParams.put("payment_currency", "KRW");
-        rgParams.put("units", "units");
-        rgParams.put("price", String.valueOf(price));
+        rgParams.put("units", units);
+        rgParams.put("price", String.valueOf(bidPrice));
         rgParams.put("type", "ask");
         result = api.callApi("/trade/place", rgParams);
+        System.out.println("판매 result : " + result);
         JSONObject jo = new JSONObject(result);
 
         if(jo.getString("status").equals("0000")) {
-            flag = false;
+            flag = true;
         }
         return flag;
     }
 
-    public boolean buy(String currency, int price, double units) {
-        boolean flag = true;
+    public boolean buy(String currency, int askPrice, String units) {
+        boolean flag = false;
         HashMap<String, String> rgParams = new HashMap<String, String>();
         rgParams.put("order_currency", currency);
         rgParams.put("payment_currency", "KRW");
-        rgParams.put("units", "units");
-        rgParams.put("price", String.valueOf(price));
+        rgParams.put("units", units);
+        rgParams.put("price", String.valueOf(askPrice));
         rgParams.put("type", "bid");
         result = api.callApi("/trade/place", rgParams);
         JSONObject jo = new JSONObject(result);
-
+        System.out.println("구매 result : " + result);
         if(jo.getString("status").equals("0000")) {
-            flag = false;
+            flag = true;
         }
         return flag;
     }
