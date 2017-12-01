@@ -64,7 +64,7 @@ public class Call {
                 JSONObject o = uta.getJSONObject(i);
                 String search = o.getString("search");
                 if(search.equals("1") || search.equals("2")) {
-                    dateMap.put(o.getString("transfer_date"),o.getString("price"));
+                    dateMap.put(o.getString("transfer_date"),o.getString("btc1krw"));
                     searchMap.put(o.getString("transfer_date"),search);
                     dateList.add(o.getString("transfer_date"));
                 }
@@ -144,7 +144,7 @@ public class Call {
         return config;
     }
 
-    public boolean sell(String currency, int bidPrice, String units) {
+    public boolean sell(String currency, String bidPrice, String units) {
         boolean flag = false;
         HashMap<String, String> rgParams = new HashMap<String, String>();
         rgParams.put("order_currency", currency);
@@ -162,7 +162,7 @@ public class Call {
         return flag;
     }
 
-    public boolean buy(String currency, int askPrice, String units) {
+    public boolean buy(String currency, String askPrice, String units) {
         boolean flag = false;
         HashMap<String, String> rgParams = new HashMap<String, String>();
         rgParams.put("order_currency", currency);

@@ -8,83 +8,104 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 public class Decide {
+    private double min_per = 0.5;
+    private double max_per = 0.5;
+    Call call = new Call();
 
-    public int pattern1(HashMap map, HashMap price) {
+    public int pattern1(JSONObject config, HashMap price) {
 
         int result = 0;
-        System.out.println(map);
+        System.out.println(config);
         System.out.println(price);
-        System.out.println(map.get("currency"));
-        if((String) price.get(map.get("currency")+"price") != "0") {
-            if (price.get(map.get("currency")+"search").equals("3")) {
-                /*구매*/
-                if (Integer.parseInt((String) price.get(map.get("currency")+"price")) > (int) map.get("ask1")) {
-//                    System.out.println("최근 판매액 보다 낮음");
-                    if ((int) map.get("min_money") >= (int) map.get("ask1")) {
-                        System.out.println("구매 : 1% 하락");
-                        price.put(map.get("currency")+"price", String.valueOf(map.get("ask1")));
-                    } else if ((int) map.get("max_money") <= (int) map.get("ask1")) {
-                        System.out.println("구매 : 1%상승");
-                        System.out.println("BUY 구매 프로세서");
-                        result = 1; /* 1 : 구매*/
-                        price.put(map.get("currency")+"price", String.valueOf(map.get("bid1")));
-                        price.put(map.get("currency")+"search", "2");
-                    }
-                } else {
 
-                    System.out.println("최근판매금액 보다 높음");
-                    if ((int) map.get("max_money") <= (int) map.get("ask1")) {
-                        System.out.println("구매 : 1%상승");
-                        System.out.println("BUY 구매 프로세서");
-                        result = 1; /* 1 : 구매*/
-                        price.put(map.get("currency")+"price", String.valueOf(map.get("bid1")));
-                        price.put(map.get("currency")+"search", "2");
+        String myKrw = String.valueOf(config.getInt("avakrw"));
+        String avaCoin = config.getString("avacoin");
+        String currency = config.getString("currency");
+        String currency_price = (String) price.get(currency+"price");
+        String currency_search = (String) price.get(currency+"search");
+        String min_money = Util.getMinMoney(currency_price, min_per);
+        String max_money = Util.getMaxMoney(currency_price, max_per);
+        System.out.println("min : " + min_money + " max : " + max_money);
+        /*order book 내역*/
+        JSONArray asksJA = config.getJSONArray("asks");
+        List asksList = new LinkedList();
+        asksList.add(asksJA.getJSONObject(0).getString("price"));
+        asksList.add(asksJA.getJSONObject(1).getString("price"));
+        Collections.reverse(asksList);
+        JSONArray bidsJA = config.getJSONArray("bids");
+        List bidsList = new LinkedList();
+        bidsList.add(bidsJA.getJSONObject(0).getString("price"));
+        bidsList.add(bidsJA.getJSONObject(1).getString("price"));
+        Collections.sort(bidsList);
+
+        String ask_price1 = (String)asksList.get(0);
+        String ask_price2 = (String)asksList.get(1);
+
+        String bid_price1 = (String)bidsList.get(0);
+        String bid_price2 = (String)bidsList.get(1);
+
+        System.out.println(currency + " start");
+        if(currency_price != "0") {
+            if (currency_search.equals("3")) {
+//                /*구매*/
+                if(Integer.parseInt(currency_price) > Integer.parseInt(ask_price1)) {
+                    System.out.println("최근 판매액 보다 낮음");
+                    if(Integer.parseInt(min_money) > Integer.parseInt(ask_price1)) {
+                        System.out.println("1% 하락");
+                        price.put(currency+"price", ask_price1);
+                    } else if(Integer.parseInt(max_money) < Integer.parseInt(ask_price1)) {
+                        System.out.println("구매 1%상승");
+                        System.out.println("SUCCESS 구매 프로세서");
+                        boolean flag = call.buy(currency, ask_price1, Util.krwToUnits(currency, myKrw, ask_price1));
+                        if(!flag) {
+                            System.out.println("구매 실패");
+                            call.buy(currency, ask_price2, Util.krwToUnits(currency, myKrw, ask_price2));
+                        }
+                        price.put(currency+"price", bid_price1);
+                        price.put(currency+"search", "2");
                     }
                 }
-            } else if (price.get(map.get("currency")+"search").equals("2")) {
+            } else if (currency_search.equals("2")) {
             /*판매*/
-                if (Integer.parseInt((String) price.get(map.get("currency")+"price")) < (int) map.get("bid1")) {
-                    if ((int) map.get("max_money") <= (int) map.get("bid1")) {
-                        System.out.println("판매 : 1% 상승 최근구매액 현 매도 금액으로 재설정");
-                        price.put(map.get("currency")+"price", String.valueOf(map.get("bid1")));
-                        System.out.println(price);
+            if(Integer.parseInt(currency_price) < Integer.parseInt(bid_price1)) {
+                System.out.println("최근 거래 금액보다 높음");
+                if(Integer.parseInt(max_money) < Integer.parseInt(bid_price1)) {
+                    System.out.println("1% 상승 최근구매액 현 매도 금액으로 재설정");
+                    price.put(currency+"price", bid_price1);
+                    System.out.println(price);
+                }
+            } else if(Integer.parseInt(currency_price) > Integer.parseInt(bid_price1)) {
+                System.out.println("최근 거래 금액보다 낮음");
+                if (Integer.parseInt(min_money) > Integer.parseInt(bid_price1)) {
+                    System.out.println("1%하락 판매");
+                    System.out.println("SUCCESS 판매 프로세스 실행");
+                    boolean flag = call.sell(currency, bid_price1, Util.getUnits(currency, avaCoin));
+                    if(!flag) {
+                        System.out.println("구매 실패");
+                        call.buy(currency, bid_price2, Util.krwToUnits(currency, myKrw, bid_price2));
                     }
-                } else if (Integer.parseInt((String) price.get(map.get("currency")+"price")) > (int) map.get("bid1")) {
-                    if ((int) map.get("min_money") >= (int) map.get("bid1")) {
-                        System.out.println("판매 :1%하락 판매");
-                        System.out.println("SELL 판매 프로세스 실행");
-                        result = 2; /* 1 : 판매*/
-                        price.put(map.get("currency")+"price", String.valueOf(map.get("ask1")));
-                        price.put(map.get("currency")+"search", "3");
-
-                    }
+                    price.put(currency+"price", ask_price1);
+                    price.put(currency+"search", "3");
                 }
             }
-            return result;
+            }
         } else {
-            /*1 : 구매완료, 2 : 판매완료*/
-            System.out.println(map.get("currency") + "초기값");
-            try {
-                if (map.get("search").equals("1")) {
-                    price.put(map.get("currency") + "price", String.valueOf(map.get("bid1")));
-                    price.put(map.get("currency") + "search", "2");
-                } else if (map.get("search").equals("2")) {
-                    price.put(map.get("currency") + "price", String.valueOf(map.get("ask1")));
-                    price.put(map.get("currency") + "search", "3");
-                }
-            } catch(NullPointerException e) {
-                result = 1;
-                price.put(map.get("currency") + "price", String.valueOf(map.get("bid1")));
-                price.put(map.get("currency") + "search", "2");
+            System.out.println(currency + "초기값"); /* 1: 구매 2: 판매*/
+            String search = config.getString("search");
+            if(search.equals("1")) {
+                price.put(currency + "price", bid_price1);
+                price.put(currency+"search", "2");
+            } else if(search.equals("2")) {
+                price.put(currency + "price", ask_price1);
+                price.put(currency+"search", "3");
+            } else {
+                System.out.println("판매금액 주입");
+                price.put(currency + "price", bid_price1);
+                price.put(currency+"search", "2");
             }
-            System.out.println(price);
-
         }
         return result;
     }

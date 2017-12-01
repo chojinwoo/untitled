@@ -1,6 +1,7 @@
 package common;
 
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
+import org.json.JSONObject;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -10,6 +11,7 @@ import java.math.RoundingMode;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.text.NumberFormat;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -82,22 +84,51 @@ public class Util {
 	
 		return string.toString();
     }
-	public static String krwToUnits(int myMoney, int price) {
+	public static String krwToUnits(String currency, String myMoney, String price) {
 
-		double units  = myMoney / Double.parseDouble(String.valueOf(price));
+		double units  = Integer.parseInt(myMoney) / Double.parseDouble(price);
 		NumberFormat nf = NumberFormat.getInstance();
-		nf.setMaximumFractionDigits(3);
+		nf.setMaximumFractionDigits(getDecimal(currency));
 		nf.setRoundingMode(RoundingMode.DOWN);
 		nf.setGroupingUsed(true);
 		return nf.format(units);
 	}
 
-	public static String getUnits(String units) {
-
+	public static String getUnits(String currency, String units) {
+		double unit = Double.parseDouble(units);
 		NumberFormat nf = NumberFormat.getInstance();
-		nf.setMaximumFractionDigits(3);
+		nf.setMaximumFractionDigits(getDecimal(currency));
 		nf.setRoundingMode(RoundingMode.DOWN);
 		nf.setGroupingUsed(true);
-		return nf.format(units);
+		return nf.format(unit);
+	}
+
+	/*BTC: 0.001 | ETH: 0.01 | DASH: 0.01 | LTC: 0.1 | ETC: 0.1 | XRP: 10 | BCH: 0.001 | XMR: 0.01 | ZEC: 0.001 | QTUM: 0.1 | BTG: 0.01)
+- 1회 최대 수량 (BTC: 300 | ETH: 2,500 | DASH: 4,000 | LTC: 15,000 | ETC: 30,000 | XRP: 2,500,000 | BCH: 1,200 | XMR: 10,000 | ZEC: 2,500 | QTUM: 30,000 | BTG: 1,200*/
+
+	public static int getDecimal(String currency) {
+		JSONObject decimal = new JSONObject();
+		decimal.put("BTC", 3);
+		decimal.put("ETH", 2);
+		decimal.put("DASH", 2);
+		decimal.put("LTC", 1);
+		decimal.put("ETC", 1);
+		decimal.put("XRP", 0);
+		decimal.put("BCH:", 3);
+		decimal.put("XMR", 2);
+		decimal.put("ZEC", 3);
+		decimal.put("QTUM", 1);
+		decimal.put("BTG", 2);
+		return (int)decimal.get(currency);
+	}
+
+	public static String getMinMoney(String price, double min_per) {
+    	int s = (int) (Integer.parseInt(price) * (0.01 * min_per));
+		return String.valueOf(Integer.parseInt(price) - s);
+	}
+
+	public static String getMaxMoney(String price, double max_per) {
+		int s = (int) (Integer.parseInt(price) * (0.01 * max_per));
+		return String.valueOf(Integer.parseInt(price) + s);
 	}
 }
