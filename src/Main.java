@@ -14,6 +14,8 @@ import java.util.*;
 public class Main {
     static String last_price = "0";
     static HashMap priceMap = new HashMap();
+    static int loopCnt = 0;
+    static JSONArray useCurrency = null;
 
 
     static Runnable btc = () -> {
@@ -21,6 +23,8 @@ public class Main {
         Call call = new Call();
         Decide decide = new Decide();
         JSONObject config = call.getConfig("BTC");
+        config.put("loopCnt", loopCnt);
+        config.put("useCurrency", useCurrency);
         int result = decide.pattern1(config, priceMap);
     };
 
@@ -29,6 +33,8 @@ public class Main {
         Call call = new Call();
         Decide decide = new Decide();
         JSONObject config = call.getConfig("ETH");
+        config.put("loopCnt", loopCnt);
+        config.put("useCurrency", useCurrency);
         decide.pattern1(config, priceMap);
     };
 
@@ -37,6 +43,8 @@ public class Main {
         Call call = new Call();
         Decide decide = new Decide();
         JSONObject config = call.getConfig("BCH");
+        config.put("loopCnt", loopCnt);
+        config.put("useCurrency", useCurrency);
         decide.pattern1(config, priceMap);
     };
 
@@ -50,21 +58,20 @@ public class Main {
             PrintStream sysout = System.out;
             System.setOut(printStream);
 
-
-
-            priceMap.put("BTCprice", last_price);/*테스트용*/
-            priceMap.put("BTCsearch", "2"); /*테스트용*/
-//            priceMap.put("ETHprice", last_price);/*테스트용*/
-//            priceMap.put("ETHsearch", "2"); /*테스트용*/
-//            priceMap.put("BCHprice", last_price);/*테스트용*/
-//            priceMap.put("BCHsearch", "2"); /*테스트용*/
             while(true) {
-                Thread thread1 = new Thread(btc);
-                thread1.start();
-//                Thread thread2 = new Thread(eth);
-//                thread2.start();
-//                Thread thread3 = new Thread(bch);
-//                thread3.start();
+                List<Thread> thread = new ArrayList();
+                thread.add(new Thread(btc));
+                thread.add(new Thread(eth));
+//                thread.add(new Thread(bch));
+                useCurrency = new JSONArray();
+                useCurrency.put("BTC");
+                useCurrency.put("ETH");
+//                useCurrency.put("BCH");
+                loopCnt = thread.size();
+                for(int i=0; i<thread.size(); i++) {
+                    thread.get(i).start();
+                }
+
                 Thread.sleep(2000);
             }
         } catch (FileNotFoundException e) {

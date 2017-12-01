@@ -3,10 +3,7 @@ package common;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class Call {
     String result = "";
@@ -30,9 +27,16 @@ public class Call {
 
         try {
             if(alias.equals("UT")) {
+                rgParams.put("currency", currency);
                 result = api.callApi("/info/user_transactions", rgParams);
-            } else if(alias.equals("OD")) {
+            } else if(alias.equals("OR")) {
                 result = api.callApi("/info/orders", rgParams);
+            } else if(alias.equals("OD_ASK")) {
+                rgParams.put("type", "ask");
+                result = api.callApi("/info/order_detail", rgParams);
+            } else if(alias.equals("OD_BID")) {
+                rgParams.put("type", "bid");
+                result = api.callApi("/info/order_detail", rgParams);
             } else if(alias.equals("BL")) {
                 result = api.callApi("/info/balance", rgParams);
             } else if (alias.equals("OB")) {
@@ -46,7 +50,6 @@ public class Call {
         JSONObject jo = new JSONObject(result);
         return jo;
     }
-
 
     public JSONObject getConfig(String currency) {
         JSONObject config = new JSONObject();
@@ -69,7 +72,9 @@ public class Call {
                     dateList.add(o.getString("transfer_date"));
                 }
             }
-            Collections.reverse(dateList);
+            DescendingStr descendingStr = new DescendingStr();
+            Collections.sort(dateList, descendingStr);
+
             config.put("price", dateMap.get(dateList.get(0)));
             config.put("search", searchMap.get(dateList.get(0)));
             /* 최근거래 판매 또는 구매 금액*/
@@ -94,7 +99,9 @@ public class Call {
                 askList.add(jo.getString("price"));
                 quantity.put(jo.getString("price"), jo.getString("quantity"));
             }
-            Collections.sort(askList);
+            DescendingStr descending = new DescendingStr();
+            Collections.sort(askList, descending);
+
             JSONArray putAr = new JSONArray();
             JSONObject pjo = new JSONObject();
             pjo.put("price", askList.get(0));
@@ -112,7 +119,8 @@ public class Call {
                 bidList.add(jo.getString("price"));
                 quantity.put(jo.getString("price"), jo.getString("quantity"));
             }
-            Collections.reverse(askList);
+            AscendingStr ascendingStr = new AscendingStr();
+            Collections.sort(bidList, ascendingStr);
             putAr = new JSONArray();
             pjo = new JSONObject();
             pjo.put("price", bidList.get(0));
@@ -179,4 +187,75 @@ public class Call {
         return flag;
     }
 
+    public int getAvaCnt(JSONObject config) {
+        int avaCnt = 1;
+        JSONArray useCurrency = config.getJSONArray("useCurrency");
+        String currency = config.getString("currency");
+        for(int i=0; i<useCurrency.length(); i++) {
+            if(!currency.equals(useCurrency.getString(i))) {
+                JSONObject ut = getResult("UT", currency);
+                JSONArray utJa = ut.getJSONArray("data");
+                HashMap utMap = new HashMap();
+                List utList = new LinkedList();
+                for(int ii=0; ii< utJa.length(); ii++) {
+                    JSONObject utJo = utJa.getJSONObject(ii);
+                    String utSearch = utJo.getString("search");
+                    if(utSearch.equals("1") || utSearch.equals("2")) {
+                        utMap.put(utJo.getString("transfer_date"), utJo.getString("search"));
+                        utList.add(utJo.getString("transfer_date"));
+                    }
+                }
+                DescendingStr descendingStr = new DescendingStr();
+                Collections.sort(utList, descendingStr);
+                try {
+                    String lastSearch = (String) utMap.get((String) utList.get(0));
+                    if (lastSearch.equals("2")) {
+                        avaCnt++;
+                    }
+                } catch(Exception e) {
+                    avaCnt++;
+                }
+            }
+        }
+        return avaCnt;
+    }
+
+    // 내림차순
+    class Descending implements Comparator<Integer> {
+
+        @Override
+        public int compare(Integer o1, Integer o2) {
+            return o2.compareTo(o1);
+        }
+
+    }
+
+    // 오름차순
+    class Ascending implements Comparator<Integer> {
+
+        @Override
+        public int compare(Integer o1, Integer o2) {
+            return o1.compareTo(o2);
+        }
+
+    }
+    // 내림차순
+    class DescendingStr implements Comparator<String> {
+
+        @Override
+        public int compare(String o1, String o2) {
+            return o2.compareTo(o1);
+        }
+
+    }
+
+    // 오름차순
+    class AscendingStr implements Comparator<String> {
+
+        @Override
+        public int compare(String o1, String o2) {
+            return o1.compareTo(o2);
+        }
+
+    }
 }

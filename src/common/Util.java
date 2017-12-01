@@ -123,12 +123,22 @@ public class Util {
 	}
 
 	public static String getMinMoney(String price, double min_per) {
-    	int s = (int) (Integer.parseInt(price) * (0.01 * min_per));
-		return String.valueOf(Integer.parseInt(price) - s);
+		try {
+			int s = (int) (Integer.parseInt(price) * (0.01 * min_per));
+			return String.valueOf(Integer.parseInt(price) - s);
+		} catch(Exception e) {
+			return "0";
+		}
 	}
 
 	public static String getMaxMoney(String price, double max_per) {
-		int s = (int) (Integer.parseInt(price) * (0.01 * max_per));
-		return String.valueOf(Integer.parseInt(price) + s);
+		try {
+			int s = (int) (Integer.parseInt(price) * (0.01 * max_per));
+			return String.valueOf(Integer.parseInt(price) + s);
+		} catch(Exception e) {
+			return "0";
+		}
 	}
+
+
 }
