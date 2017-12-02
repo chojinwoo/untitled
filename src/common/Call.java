@@ -2,12 +2,15 @@ package common;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class Call {
-    String result = "";
+    static Logger log = LoggerFactory.getLogger(Decide.class);
+
     String apiKey = "";
     String secretKey = "";
     private Api_Client api = null;
@@ -18,6 +21,7 @@ public class Call {
     }
 
     public JSONObject getResult(String alias, String currency, String order_id) {
+        String result = "";
         HashMap<String, String> rgParams = new HashMap<String, String>();
         rgParams.put("order_currency", currency);
         rgParams.put("payment_currency", "KRW");
@@ -32,6 +36,7 @@ public class Call {
                 result = api.callApi("/trade/cancel", rgParams);
             /*구매 거래 주문 등록 또는 진행 중인 거래*/
             } else if(alias.equals("OR_ASK")) {
+                rgParams.put("type", "ask");
                 rgParams.put("count", "2");
                 rgParams.put("after", Util.getRemoveMinuteTime(-1));
                 rgParams.put("currency", currency);
@@ -55,6 +60,7 @@ public class Call {
 
     /* 빗썸 url 호출 */
     public JSONObject getResult(String alias, String currency) {
+        String result = "";
         HashMap<String, String> rgParams = new HashMap<String, String>();
         rgParams.put("order_currency", currency);
         rgParams.put("payment_currency", "KRW");
@@ -88,6 +94,7 @@ public class Call {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        log.debug(result);
         JSONObject jo = new JSONObject(result);
         return jo;
     }
@@ -184,7 +191,7 @@ public class Call {
 
 
         } catch(Exception e) {
-            System.out.println(e);
+            log.debug(e.getMessage());
         }
 
         return config;
@@ -193,9 +200,9 @@ public class Call {
     /*판매 로직*/
     public int sell(String currency, String bidPrice, String units) {
         int flag = 2;
-        System.out.println("판매 수량 : " + units);
+        log.debug("판매 수량 : " + units);
         if(units.equals("0")) {
-            System.out.println("수량 부족");
+            log.debug("수량 부족");
             flag = 3;
         } else {
             HashMap<String, String> rgParams = new HashMap<String, String>();
@@ -205,7 +212,7 @@ public class Call {
             rgParams.put("price", String.valueOf(bidPrice));
             rgParams.put("type", "ask");
             String rr = api.callApi("/trade/place", rgParams);
-            System.out.println("판매 result : " + rr);
+            log.debug("판매 result : " + rr);
             JSONObject rrJO = new JSONObject(rr);
 
             if (rrJO.getString("status").equals("0000")) {
@@ -218,10 +225,10 @@ public class Call {
 
     /*구매 로직*/
     public int buy(String currency, String askPrice, String units) {
-        System.out.println("구매 수량 : " + units);
+        log.debug("구매 수량 : " + units);
         int  flag = 2;
         if(units.equals("0")) {
-            System.out.println("금액 부족");
+            log.debug("금액 부족");
             flag = 3;
         } else {
             HashMap<String, String> rgParams = new HashMap<String, String>();
@@ -233,7 +240,7 @@ public class Call {
             String rr = api.callApi("/trade/place", rgParams);
             JSONObject rrJO = new JSONObject(rr);
             if (rrJO.getString("status").equals("0000")) {
-                System.out.println("구매 결과 진입");
+                log.debug("구매 결과 진입");
                 flag = 1;
             }
         }
@@ -242,10 +249,10 @@ public class Call {
 
     /*maker fee 판매*/
     public int makerSell(String currency, JSONArray bidPrices, String units) {
-        System.out.println("판매 수량 : " + units);
+        log.debug("판매 수량 : " + units);
         int  flag = 2;
         if(units.equals("0")) {
-            System.out.println("판매수량 부족");
+            log.debug("판매수량 부족");
             flag = 3;
         } else {
             HashMap<String, String> rgParams = new HashMap<String, String>();
@@ -262,7 +269,6 @@ public class Call {
 
                     if(Double.parseDouble(temp_unit) <= Double.parseDouble(bidQuantity)) {
                         rgParams.put("units", temp_unit);
-                        temp_unit = "0";
                     } else {
                         temp_unit = String.valueOf(Double.parseDouble(temp_unit) - Double.parseDouble(bidQuantity));
                         rgParams.put("units", temp_unit);
@@ -275,13 +281,15 @@ public class Call {
                     JSONObject rrJO = new JSONObject(rr);
                     if(rrJO.getString("status").equals("0000")) {
                         /* 구매 체결 확인 */
-                        JSONObject orBid = getResult("OR_ASK", rrJO.getString("order_id"));
-                        /* 구매 체결 확인 debug */
-//                        JSONObject orBid = new JSONObject("{\"status\":\"5600\"}");
-                        System.out.println(orBid);
+                        JSONArray sellResult = rrJO.getJSONArray("data");
+                        JSONObject orBid = getResult("OR_ASK", currency, rrJO.getString("order_id"));
+                        log.debug(orBid.toString());
+                        double remainingUnit = Double.parseDouble(temp_unit) - Double.parseDouble(sellResult.getJSONObject(0).getString("units"));
+                        int ru = (int) remainingUnit;
+                        temp_unit = String.valueOf(ru);
                         if(orBid.getString("status").equals("5600")) {
-                            System.out.println("조회된 내역이 없음");
-                            if (temp_unit.compareTo("0") == 0) {
+                            log.debug("조회된 내역이 없음");
+                            if (Integer.parseInt(temp_unit) == 0) {
                                 sellSuc = true;
                                 flag = 1;
                             }
@@ -303,7 +311,7 @@ public class Call {
 
     /*maker fee 구매*/
     public int makerBuy(String currency, JSONArray askPrices, String krw) {
-        System.out.println("구매 금액: " + krw);
+        log.debug("구매 금액: " + krw);
         int  flag = 2;
         HashMap<String, String> rgParams = new HashMap<String, String>();
         rgParams.put("currency", currency);
@@ -338,10 +346,12 @@ public class Call {
                     JSONObject orAsk = getResult("OR_BID",currency,rrJO.getString("order_id"));
                         /* 구매 체결 확인 debug */
 //                    JSONObject orAsk = new JSONObject("{\"status\":\"5600\"}");
-                    System.out.println(orAsk);
+                    log.debug(orAsk.toString());
                     if(orAsk.getString("status").equals("5600")) {
-                        System.out.println("서버오류 order 체크 제외");
+                        log.debug("서버오류 order 체크 제외");
                         /*금액비교*/
+                        JSONArray buyResult = rrJO.getJSONArray("data");
+                        krw = String.valueOf(Integer.parseInt(krw) - buyResult.getJSONObject(0).getInt("total"));
                         if(Integer.parseInt(minValue) > Integer.parseInt(krw)) {
                             buySuc = true;
                             flag = 1;

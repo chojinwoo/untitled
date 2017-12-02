@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+    <property name="LOGS_ABSOLUT_PATH" value="./logs" />
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss}][%-5level][%logger{36}] - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>log/log_%d{yyyyMMddHH}.log</fileNamePattern>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{35} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="Main"  level="debug" additivity="false">
+        <appender-ref ref="ROLLING" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="common.Call"  level="debug" additivity="false">
+        <appender-ref ref="ROLLING" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="common.Decide"  level="debug" additivity="false">
+        <appender-ref ref="ROLLING" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="common.Util"  level="debug" additivity="false">
+        <appender-ref ref="ROLLING" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="Main.Child" additivity="true" />
+
+    <root level="info">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+</configuration>

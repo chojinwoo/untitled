@@ -2,6 +2,8 @@ import common.Call;
 import common.Decide;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -12,6 +14,8 @@ import java.util.*;
 
 
 public class Main {
+
+    static Logger log = LoggerFactory.getLogger(Main.class);
     static String last_price = "0";
     static HashMap priceMap = new HashMap();
     static JSONArray useCurrency = null;
@@ -83,10 +87,6 @@ public class Main {
     public static void main(String args[]) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHH");
         try {
-//            File file = new File("logs/log_"+sdf.format(new Date())+".txt");
-//            PrintStream printStream = new PrintStream(new FileOutputStream(file));
-//            PrintStream sysout = System.out;
-//            System.setOut(printStream);
 
             /*
             *  통화 종류 선택
@@ -98,6 +98,8 @@ public class Main {
             init(currencies);
 
             while(true) {
+
+
                 List<Thread> thread = new ArrayList();
                 for(String currency : currencies) {
                     switch(currency) {
@@ -125,8 +127,6 @@ public class Main {
 
                 Thread.sleep( 1200);
             }
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
