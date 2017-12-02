@@ -5,10 +5,9 @@ import org.json.JSONObject;
 import java.util.*;
 
 public class Decide {
-    private double btc_min_per = 3;
-    private double btc_max_per = 3;
     Call call = new Call();
 
+    /* 구매 패턴 1*/
     public void pattern1(JSONObject config, HashMap price) {
 
         String myKrw = String.valueOf(config.getInt("avakrw"));
@@ -18,11 +17,10 @@ public class Decide {
         String currency_search = (String) price.get(currency+"search");
         String min_money = Util.getMinMoney(currency_price, (Double) price.get(currency+"_min_per"));
         String max_money = Util.getMaxMoney(currency_price, (Double) price.get(currency+"_max_per"));
-        String first_max_money = Util.getMaxMoney(currency_price, (Double) price.get(currency+"_max_per")/2);
         System.out.println(currency + " start");
         System.out.println(config);
         System.out.println("default price : " +price.get(currency+"price"));
-        System.out.println("min : " + min_money + " max : " + max_money + " first Max : " + first_max_money);
+        System.out.println("min : " + min_money + " max : " + max_money);
         /*order book 내역*/
         JSONArray asksJA = config.getJSONArray("asks");
         JSONArray bidsJA = config.getJSONArray("bids");
@@ -62,7 +60,7 @@ public class Decide {
                         if(Integer.parseInt((String)price.get(currency+"cnt")) < 1) {
                             System.out.println("구매 : 1%상승");
                             System.out.println("SUCCESS 구매 프로세서");
-                            int avaCnt = call.getAvaCnt(config); /* 구매할 비트코인종류의 카운트 */
+                            int avaCnt = call.getBuyCurrencyCnt(config); /* 구매할 비트코인종류의 카운트 */
                             String krw = String.valueOf(Integer.parseInt(myKrw) / avaCnt);
                             int flag = call.buy(currency, ask_price1, Util.krwToUnits(currency, krw, ask_price1));
 
@@ -99,7 +97,7 @@ public class Decide {
             } else if (currency_search.equals("2")) {
             /*판매*/
                 System.out.println("bid1 : " + bid_price1 + " bid2 : " + bid_price2);
-                if(Integer.parseInt(currency_price) < Integer.parseInt(bid_price2)) {
+                if(Integer.parseInt(currency_price) < Integer.parseInt(bid_price1)) {
                     System.out.println("판매 : 구매 금액보다 높음");
                     if(Integer.parseInt(max_money) < Integer.parseInt(bid_price1)) {
                         System.out.println("1% 상승 최근구매액 현 매도 금액으로 재설정");

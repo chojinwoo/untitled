@@ -16,33 +16,38 @@ public class Call {
                 secretKey);
     }
 
+    /* 빗썸 url 호출 */
     public JSONObject getResult(String alias, String currency) {
-
-
-
         HashMap<String, String> rgParams = new HashMap<String, String>();
         rgParams.put("order_currency", currency);
         rgParams.put("payment_currency", "KRW");
 
 
         try {
+            /*회원 거래 내역*/
             if(alias.equals("UT")) {
                 rgParams.put("searchGb", "0");
                 rgParams.put("currency", currency);
                 result = api.callApi("/info/user_transactions", rgParams);
+            /*판/구매 거래 주문 등록 또는 진행 중인 거래*/
             } else if(alias.equals("OR")) {
                 result = api.callApi("/info/orders", rgParams);
+            /*회원 구매 체결 내역*/
             } else if(alias.equals("OD_ASK")) {
                 rgParams.put("type", "ask");
                 result = api.callApi("/info/order_detail", rgParams);
+            /*회원 판매 체결 내역*/
             } else if(alias.equals("OD_BID")) {
                 rgParams.put("type", "bid");
                 result = api.callApi("/info/order_detail", rgParams);
+            /*거래소 회원 지갑 정보*/
             } else if(alias.equals("BL")) {
                 rgParams.put("currency", currency);
                 result = api.callApi("/info/balance", rgParams);
+            /*거래소 판/구매 등록 대기 또는 거래 중 내역 정보*/
             } else if (alias.equals("OB")) {
                 result = api.callApi("/public/orderbook/"+currency, rgParams);
+            /*거래소 회원 정보*/
             } else if (alias.equals("ACC")) {
                 result = api.callApi("/info/account", rgParams);
             }
@@ -53,6 +58,7 @@ public class Call {
         return jo;
     }
 
+    /* 거래소에서 가져온 정보 재정리 */
     public JSONObject getConfig(String currency) {
         JSONObject config = new JSONObject();
 
@@ -153,6 +159,7 @@ public class Call {
         return config;
     }
 
+    /*판매 로직*/
     public int sell(String currency, String bidPrice, String units) {
         int flag = 2;
         System.out.println("판매 수량 : " + units);
@@ -177,6 +184,8 @@ public class Call {
         return flag;
     }
 
+
+    /*구매 로직*/
     public int buy(String currency, String askPrice, String units) {
         System.out.println("구매 수량 : " + units);
         int  flag = 2;
@@ -200,7 +209,8 @@ public class Call {
         return flag;
     }
 
-    public int getAvaCnt(JSONObject config) {
+    /*구매해야될 currency 갯수*/
+    public int getBuyCurrencyCnt(JSONObject config) {
         int avaCnt = 1;
         JSONArray useCurrency = config.getJSONArray("useCurrency");
         String currency = config.getString("currency");
