@@ -27,6 +27,8 @@ public class Main {
         priceMap.put("BCH_min_per", 1.0);
         priceMap.put("XRP_max_per", 1.0);
         priceMap.put("XRP_min_per", 1.0);
+        priceMap.put("ETC_max_per", 1.0);
+        priceMap.put("ETC_min_per", 1.0);
         useCurrency = new JSONArray();
         for(String currency : currencies) {
             useCurrency.put(currency);
@@ -39,7 +41,7 @@ public class Main {
         Decide decide = new Decide();
         JSONObject config = call.getConfig("BTC");
         config.put("useCurrency", useCurrency);
-        decide.pattern1(config, priceMap);
+        decide.pattern2(config, priceMap);
     };
 
     static Runnable eth = () -> {
@@ -48,7 +50,7 @@ public class Main {
         Decide decide = new Decide();
         JSONObject config = call.getConfig("ETH");
         config.put("useCurrency", useCurrency);
-        decide.pattern1(config, priceMap);
+        decide.pattern2(config, priceMap);
     };
 
     static Runnable bch = () -> {
@@ -57,7 +59,7 @@ public class Main {
         Decide decide = new Decide();
         JSONObject config = call.getConfig("BCH");
         config.put("useCurrency", useCurrency);
-        decide.pattern1(config, priceMap);
+        decide.pattern2(config, priceMap);
     };
 
     static Runnable xrp = () -> {
@@ -66,20 +68,29 @@ public class Main {
         Decide decide = new Decide();
         JSONObject config = call.getConfig("XRP");
         config.put("useCurrency", useCurrency);
-        decide.pattern1(config, priceMap);
+        decide.pattern2(config, priceMap);
+    };
+
+    static Runnable etc = () -> {
+        String threadName = Thread.currentThread().getName();
+        Call call = new Call();
+        Decide decide = new Decide();
+        JSONObject config = call.getConfig("ETC");
+        config.put("useCurrency", useCurrency);
+        decide.pattern2(config, priceMap);
     };
 
     public static void main(String args[]) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHH");
         try {
-            File file = new File("logs/log_"+sdf.format(new Date())+".txt");
-            PrintStream printStream = new PrintStream(new FileOutputStream(file));
-            PrintStream sysout = System.out;
-            System.setOut(printStream);
+//            File file = new File("logs/log_"+sdf.format(new Date())+".txt");
+//            PrintStream printStream = new PrintStream(new FileOutputStream(file));
+//            PrintStream sysout = System.out;
+//            System.setOut(printStream);
 
             /*
             *  통화 종류 선택
-            *  BTC : 비트코인, ETH : 이더리움, BCH : 비트코인캐쉬, XRP : 리플
+            *  BTC : 비트코인, ETH : 이더리움, BCH : 비트코인캐쉬, XRP : 리플 ETC : 이더리움 클래식
             *  */
             String[] currencies = new String[]{"BTC"};
 
@@ -102,6 +113,9 @@ public class Main {
                         case "XRP":
                             thread.add(new Thread(xrp));
                             break;
+                        case "ETC":
+                            thread.add(new Thread(etc));
+                            break;
                     }
                 }
 
@@ -109,10 +123,10 @@ public class Main {
                     thread.get(i).start();
                 }
 
-                Thread.sleep( 1000);
+                Thread.sleep( 1200);
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

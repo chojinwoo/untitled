@@ -11,6 +11,9 @@ import java.math.RoundingMode;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -87,7 +90,7 @@ public class Util {
 	public static String krwToUnits(String currency, String myMoney, String price) {
 		double units  = Integer.parseInt(myMoney) / Double.parseDouble(price);
 		NumberFormat nf = NumberFormat.getInstance();
-		nf.setMaximumFractionDigits(getDecimal(currency));
+		nf.setMaximumFractionDigits(getDecimalCnt(currency));
 		nf.setRoundingMode(RoundingMode.DOWN);
 		nf.setGroupingUsed(true);
 		return nf.format(units);
@@ -96,16 +99,41 @@ public class Util {
 	public static String getUnits(String currency, String units) {
 		double unit = Double.parseDouble(units);
 		NumberFormat nf = NumberFormat.getInstance();
-		nf.setMaximumFractionDigits(getDecimal(currency));
+		nf.setMaximumFractionDigits(getDecimalCnt(currency));
 		nf.setRoundingMode(RoundingMode.DOWN);
 		nf.setGroupingUsed(true);
 		return nf.format(unit);
 	}
 
+	public static String decimalRemove(double value) {
+		NumberFormat nf = NumberFormat.getInstance();
+		nf.setMaximumFractionDigits(0);
+		nf.setRoundingMode(RoundingMode.DOWN);
+		nf.setGroupingUsed(true);
+		return nf.format(value);
+	}
+
 	/*BTC: 0.001 | ETH: 0.01 | DASH: 0.01 | LTC: 0.1 | ETC: 0.1 | XRP: 10 | BCH: 0.001 | XMR: 0.01 | ZEC: 0.001 | QTUM: 0.1 | BTG: 0.01)
 - 1회 최대 수량 (BTC: 300 | ETH: 2,500 | DASH: 4,000 | LTC: 15,000 | ETC: 30,000 | XRP: 2,500,000 | BCH: 1,200 | XMR: 10,000 | ZEC: 2,500 | QTUM: 30,000 | BTG: 1,200*/
 
-	public static int getDecimal(String currency) {
+	public static String getCurrencyMinQuantity(String currency) {
+		JSONObject decimal = new JSONObject();
+		decimal.put("BTC", "0.001");
+		decimal.put("ETH", "0.01");
+		decimal.put("DASH", "0.01");
+		decimal.put("LTC", "0.1");
+		decimal.put("ETC", "0.1");
+		decimal.put("XRP", "10");
+		decimal.put("BCH:", "0.001");
+		decimal.put("XMR", "0.01");
+		decimal.put("ZEC", "0.001");
+		decimal.put("QTUM", "0.1");
+		decimal.put("BTG", "0.01");
+		return (String)decimal.get(currency);
+
+	}
+
+	public static int getDecimalCnt(String currency) {
 		JSONObject decimal = new JSONObject();
 		decimal.put("BTC", 3);
 		decimal.put("ETH", 2);
@@ -119,6 +147,21 @@ public class Util {
 		decimal.put("QTUM", 1);
 		decimal.put("BTG", 2);
 		return (int)decimal.get(currency);
+	}
+
+	public static String getRemoveMinuteTime(int minute) {
+		Date date = new Date();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyMMddkkmmss");
+		// Java 시간 더하기
+
+		Calendar cal = Calendar.getInstance();
+
+		cal.setTime(date);
+
+		// 분 더하기
+		cal.add(Calendar.MINUTE, minute);
+
+		return sdf.format(cal.getTime());
 	}
 
 	public static String getMinMoney(String price, double min_per) {

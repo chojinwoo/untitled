@@ -3,6 +3,7 @@ package common;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class Call {
@@ -14,6 +15,42 @@ public class Call {
     public Call() {
         api = new Api_Client(apiKey,
                 secretKey);
+    }
+
+    public JSONObject getResult(String alias, String currency, String order_id) {
+        HashMap<String, String> rgParams = new HashMap<String, String>();
+        rgParams.put("order_currency", currency);
+        rgParams.put("payment_currency", "KRW");
+
+        try {
+
+            /*구매 거래 주문 등록 또는 진행 중인 거래 취소*/
+            if(alias.equals("OR_CANCEL")) {
+                rgParams.put("count", "10");
+                rgParams.put("currency", currency);
+                rgParams.put("order_id", order_id);
+                result = api.callApi("/trade/cancel", rgParams);
+            /*구매 거래 주문 등록 또는 진행 중인 거래*/
+            } else if(alias.equals("OR_ASK")) {
+                rgParams.put("count", "2");
+                rgParams.put("after", Util.getRemoveMinuteTime(-1));
+                rgParams.put("currency", currency);
+                rgParams.put("order_id", order_id);
+                result = api.callApi("/info/orders", rgParams);
+            /*판매 거래 주문 등록 또는 진행 중인 거래*/
+            } else if(alias.equals("OR_BID")) {
+                rgParams.put("type", "bid");
+                rgParams.put("count", "2");
+                rgParams.put("after", Util.getRemoveMinuteTime(-1));
+                rgParams.put("currency", currency);
+                rgParams.put("order_id", order_id);
+                result = api.callApi("/info/orders", rgParams);
+            }
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        JSONObject jo = new JSONObject(result);
+        return jo;
     }
 
     /* 빗썸 url 호출 */
@@ -29,9 +66,6 @@ public class Call {
                 rgParams.put("searchGb", "0");
                 rgParams.put("currency", currency);
                 result = api.callApi("/info/user_transactions", rgParams);
-            /*판/구매 거래 주문 등록 또는 진행 중인 거래*/
-            } else if(alias.equals("OR")) {
-                result = api.callApi("/info/orders", rgParams);
             /*회원 구매 체결 내역*/
             } else if(alias.equals("OD_ASK")) {
                 rgParams.put("type", "ask");
@@ -110,14 +144,12 @@ public class Call {
             Collections.sort(askList, ascendingStr);
 
             JSONArray putAr = new JSONArray();
-            JSONObject pjo = new JSONObject();
-            pjo.put("price", askList.get(0));
-            pjo.put("quantity", quantity.get(askList.get(0)));
-            putAr.put(pjo);
-            pjo = new JSONObject();
-            pjo.put("price", askList.get(1));
-            pjo.put("quantity", quantity.get(askList.get(1)));
-            putAr.put(pjo);
+            for(int ii =0; ii<askList.size(); ii++) {
+                JSONObject pjo = new JSONObject();
+                pjo.put("price", askList.get(ii));
+                pjo.put("quantity", quantity.get(askList.get(ii)));
+                putAr.put(pjo);
+            }
             config.put("asks",putAr);
 
             /*구매(매수) 설정 desc 팔아야될 코인*/
@@ -128,15 +160,14 @@ public class Call {
             }
             DescendingStr descendingStr = new DescendingStr();
             Collections.sort(bidList, descendingStr);
+
             putAr = new JSONArray();
-            pjo = new JSONObject();
-            pjo.put("price", bidList.get(0));
-            pjo.put("quantity", quantity.get(bidList.get(0)));
-            putAr.put(pjo);
-            pjo = new JSONObject();
-            pjo.put("price", bidList.get(1));
-            pjo.put("quantity", quantity.get(bidList.get(1)));
-            putAr.put(pjo);
+            for(int ii =0; ii<bidList.size(); ii++) {
+                JSONObject pjo = new JSONObject();
+                pjo.put("price", bidList.get(ii));
+                pjo.put("quantity", quantity.get(bidList.get(ii)));
+                putAr.put(pjo);
+            }
             config.put("bids",putAr);
 
             /*지갑 정보 정의*/
@@ -204,6 +235,115 @@ public class Call {
             if (rrJO.getString("status").equals("0000")) {
                 System.out.println("구매 결과 진입");
                 flag = 1;
+            }
+        }
+        return flag;
+    }
+
+    /*maker fee 판매*/
+    public int makerSell(String currency, JSONArray bidPrices, String units) {
+        System.out.println("판매 수량 : " + units);
+        int  flag = 2;
+        if(units.equals("0")) {
+            System.out.println("판매수량 부족");
+            flag = 3;
+        } else {
+            HashMap<String, String> rgParams = new HashMap<String, String>();
+            rgParams.put("currency", currency);
+
+            String temp_unit = units;
+            boolean sellSuc = false;
+            for(int i=0; i<bidPrices.length(); i++) {
+                JSONObject bidJO = bidPrices.getJSONObject(0);
+                String bidQuantity = bidJO.getString("quantity");
+                String bidPrice = bidJO.getString("price");
+//                rgParams.put("price", String.valueOf(bidPrice));
+                if(!sellSuc) {
+
+                    if(Double.parseDouble(temp_unit) <= Double.parseDouble(bidQuantity)) {
+                        rgParams.put("units", temp_unit);
+                    } else {
+                        temp_unit = String.valueOf(Double.parseDouble(temp_unit) - Double.parseDouble(bidQuantity));
+                        rgParams.put("units", bidPrice);
+                    }
+
+                    /*maker 구매*/
+                    String rr = api.callApi("/trade/market_sell", rgParams);
+                    JSONObject rrJO = new JSONObject(rr);
+                    if(rrJO.getString("status").equals("0000")) {
+                        /* 구매 체결 확인 */
+                        JSONObject orBid = getResult("OR_ASK", rrJO.getString("order_id"));
+                        System.out.println(orBid);
+                        JSONArray orBidAr = orBid.getJSONArray("data");
+                        if(orBid.getString("status").equals("5600")) {
+                            System.out.println("서버오류 order 체크 제외");
+                            if (Integer.parseInt(temp_unit) == 0) {
+                                sellSuc = true;
+                                flag = 1;
+                            }
+                        } else if(orBid.getString("status").equals("0000")) {
+                            getResult("OR_CANCEL", currency, orBid.getString("order_id"));
+                            if (Integer.parseInt(temp_unit) == 0) {
+                                sellSuc = true;
+                                flag = 1;
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+        return flag;
+    }
+
+
+    /*maker fee 구매*/
+    public int makerBuy(String currency, JSONArray askPrices, String krw) {
+        System.out.println("구매 금액: " + krw);
+        int  flag = 2;
+        HashMap<String, String> rgParams = new HashMap<String, String>();
+        rgParams.put("currency", currency);
+        String temp_krw = krw;
+        boolean buySuc = false;
+        for(int i=0; i<askPrices.length(); i++) {
+            JSONObject askJO = askPrices.getJSONObject(0);
+            String askQuantity = askJO.getString("quantity");
+            String askPrice = askJO.getString("price");
+            String minValue = Util.decimalRemove(Integer.parseInt(askPrice) * Double.parseDouble(Util.getCurrencyMinQuantity(currency)));
+            rgParams.put("price", String.valueOf(askPrice));
+            String temp_unit = Util.krwToUnits(currency, krw, askPrice);
+            if(!buySuc) {
+
+                if(Double.parseDouble(temp_unit) <= Double.parseDouble(askQuantity)) {
+                    rgParams.put("units", temp_unit);
+                } else {
+                    String.valueOf(Double.parseDouble(temp_unit) - Double.parseDouble(askQuantity));
+                    krw = Util.decimalRemove(Integer.parseInt(krw) - (Integer.parseInt(minValue) * Double.parseDouble(askQuantity)));
+                    rgParams.put("units", askQuantity);
+                }
+
+                String rr = api.callApi("/trade/market_buy", rgParams);
+                JSONObject rrJO = new JSONObject(rr);
+
+                if(rrJO.getString("status").equals("0000")) {
+                    /* 구매 체결 확인 */
+                    JSONObject orAsk = getResult("OR_BID",currency,rrJO.getString("order_id"));
+                    System.out.println(orAsk);
+                    if(orAsk.getString("status").equals("5600")) {
+                        System.out.println("서버오류 order 체크 제외");
+                        /*금액비교*/
+                        if(Integer.parseInt(minValue) > Integer.parseInt(krw)) {
+                            buySuc = true;
+                            flag = 1;
+                        }
+                    } else if(orAsk.getString("status").equals("0000")) {
+                        getResult("OR_CANCEL", currency, orAsk.getString("order_id"));
+                        if(Integer.parseInt(minValue) > Integer.parseInt(krw)) {
+                            buySuc = true;
+                            flag = 1;
+                        }
+                    }
+                }
             }
         }
         return flag;
