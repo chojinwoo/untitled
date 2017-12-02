@@ -106,8 +106,9 @@ public class Util {
 	}
 
 	public static String decimalRemove(double value) {
+		System.out.println(value);
 		NumberFormat nf = NumberFormat.getInstance();
-		nf.setMaximumFractionDigits(0);
+		nf.setMaximumFractionDigits(1);
 		nf.setRoundingMode(RoundingMode.DOWN);
 		nf.setGroupingUsed(true);
 		return nf.format(value);

@@ -177,14 +177,17 @@ public class Decide {
                 search = config.getString("search");
                 if(search.equals("2")) {
                     price.put(currency+"search", "1");
-                    price.put(currency + "price", bid_price1);
+                    price.put(currency + "price", ask_price1);
+//                    int flag = call.makerSell(currency, bidsJA, Util.getUnits(currency, avaCoin));
                 } else if(search.equals("1")) {
                     price.put(currency+"search", "2");
-                    price.put(currency + "price", ask_price1);
+                    price.put(currency + "price", bid_price1);
+//                    int flag = call.makerSell(currency, bidsJA, Util.getUnits(currency, avaCoin));
                 }
             } catch(Exception e) {
-                price.put(currency+"search", "2");
+                price.put(currency+"search", "1");
                 price.put(currency + "price", ask_price1);
+//                int flag = call.makerSell(currency, bidsJA, Util.getUnits(currency, avaCoin));
             }
 
         } else {
@@ -194,37 +197,37 @@ public class Decide {
                 System.out.println("ask1 : " + ask_price1 + " ask2 : " + ask_price2 + " ask3 : " + ask_price3 + " ask4 : " + ask_price4 + " ask5 : " + ask_price5);
                 if(Integer.parseInt(currency_price) > Integer.parseInt(ask_price1)) {
                     System.out.println("구매 : 판매액 보다 낮음");
-                    if(Integer.parseInt(min_money) > Integer.parseInt(ask_price1)) {
+                    if (Integer.parseInt(min_money) > Integer.parseInt(ask_price1)) {
                         System.out.println("1% 하락");
-                        price.put(currency+"price", ask_price1);
-                        price.put(currency+"cnt", String.valueOf(Integer.parseInt((String)price.get(currency+"cnt")) + 1));
-                    }
-                } else {
-                    System.out.println("구매 : 판매액 보다 높음");
-                    price.put(currency+"cnt", String.valueOf(Integer.parseInt((String)price.get(currency+"cnt")) - 1));
-                    if(Integer.parseInt(max_money) < Integer.parseInt(ask_price1)) {
-                        if(Integer.parseInt((String)price.get(currency+"cnt")) < 1) {
-                            System.out.println("구매 : 1%상승");
-                            System.out.println("SUCCESS 구매 프로세서");
-                            int avaCnt = call.getBuyCurrencyCnt(config); /* 구매할 비트코인종류의 카운트 */
-                            String krw = String.valueOf(Integer.parseInt(myKrw) / avaCnt);
-                            int flag = call.makerBuy(currency, asksJA, krw);
-                            System.out.println("구매 결과값 : " + flag);
-                            switch (flag) {
-                                case 1:
-                                    price.put(currency+"price", bid_price1);
-                                    price.put(currency+"search", "1");
-                                    break;
-                                case 2:
-                                    System.out.println("구매 실패");
-                                    break;
-                                case 3:
-                                    System.out.println("수량부족");
-                                    break;
+                        price.put(currency + "price", ask_price1);
+                        price.put(currency + "cnt", String.valueOf(Integer.parseInt((String) price.get(currency + "cnt")) + 1));
+                    } else {
+                        System.out.println("구매 : 판매액 보다 높음");
+                        price.put(currency + "cnt", String.valueOf(Integer.parseInt((String) price.get(currency + "cnt")) - 1));
+                        if (Integer.parseInt(max_money) < Integer.parseInt(ask_price1)) {
+                            if (Integer.parseInt((String) price.get(currency + "cnt")) < 1) {
+                                System.out.println("구매 : 1%상승");
+                                System.out.println("SUCCESS 구매 프로세서");
+                                int avaCnt = call.getBuyCurrencyCnt(config); /* 구매할 비트코인종류의 카운트 */
+                                String krw = String.valueOf(Integer.parseInt(myKrw) / avaCnt);
+                                int flag = call.makerBuy(currency, asksJA, krw);
+                                System.out.println("구매 결과값 : " + flag);
+                                switch (flag) {
+                                    case 1:
+                                        price.put(currency + "price", bid_price1);
+                                        price.put(currency + "search", "2");
+                                        break;
+                                    case 2:
+                                        System.out.println("구매 실패");
+                                        break;
+                                    case 3:
+                                        System.out.println("수량부족");
+                                        break;
+                                }
+                            } else {
+                                System.out.println("구매 : 1% 상승 하락 카운트 초기화 현재 카운트  : " + price.get(currency + "cnt"));
+                                price.put(currency + "cnt", "0");
                             }
-                        } else {
-                            System.out.println("구매 : 1% 상승 하락 카운트 초기화 현재 카운트  : " + price.get(currency + "cnt"));
-                            price.put(currency + "cnt", "0");
                         }
                     }
                 }
@@ -247,7 +250,7 @@ public class Decide {
                         switch (flag) {
                             case 1:
                                 price.put(currency+"price", ask_price1);
-                                price.put(currency+"search", "2");
+                                price.put(currency+"search", "1");
                                 break;
                             case 2:
                                 System.out.println("판매 실패");

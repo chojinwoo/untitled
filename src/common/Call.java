@@ -262,22 +262,26 @@ public class Call {
 
                     if(Double.parseDouble(temp_unit) <= Double.parseDouble(bidQuantity)) {
                         rgParams.put("units", temp_unit);
+                        temp_unit = "0";
                     } else {
                         temp_unit = String.valueOf(Double.parseDouble(temp_unit) - Double.parseDouble(bidQuantity));
-                        rgParams.put("units", bidPrice);
+                        rgParams.put("units", temp_unit);
                     }
 
                     /*maker 구매*/
-                    String rr = api.callApi("/trade/market_sell", rgParams);
+//                    String rr = api.callApi("/trade/market_sell", rgParams);
+                    /*구매 debug*/
+                    String rr = "{\"status\":\"0000\"}";
                     JSONObject rrJO = new JSONObject(rr);
                     if(rrJO.getString("status").equals("0000")) {
                         /* 구매 체결 확인 */
-                        JSONObject orBid = getResult("OR_ASK", rrJO.getString("order_id"));
+//                        JSONObject orBid = getResult("OR_ASK", rrJO.getString("order_id"));
+                        /* 구매 체결 확인 debug */
+                        JSONObject orBid = new JSONObject("{\"status\":\"5600\"}");
                         System.out.println(orBid);
-                        JSONArray orBidAr = orBid.getJSONArray("data");
                         if(orBid.getString("status").equals("5600")) {
-                            System.out.println("서버오류 order 체크 제외");
-                            if (Integer.parseInt(temp_unit) == 0) {
+                            System.out.println("조회된 내역이 없음");
+                            if (temp_unit.compareTo("0") == 0) {
                                 sellSuc = true;
                                 flag = 1;
                             }
@@ -309,7 +313,8 @@ public class Call {
             JSONObject askJO = askPrices.getJSONObject(0);
             String askQuantity = askJO.getString("quantity");
             String askPrice = askJO.getString("price");
-            String minValue = Util.decimalRemove(Integer.parseInt(askPrice) * Double.parseDouble(Util.getCurrencyMinQuantity(currency)));
+            double mv = Integer.parseInt(askPrice) * Double.parseDouble(Util.getCurrencyMinQuantity(currency));
+            String minValue = String.valueOf((int)mv);
             rgParams.put("price", String.valueOf(askPrice));
             String temp_unit = Util.krwToUnits(currency, krw, askPrice);
             if(!buySuc) {
@@ -322,12 +327,16 @@ public class Call {
                     rgParams.put("units", askQuantity);
                 }
 
-                String rr = api.callApi("/trade/market_buy", rgParams);
+//                String rr = api.callApi("/trade/market_buy", rgParams);
+                /*판매 debug*/
+                String rr = "{\"status\":\"0000\"}";
                 JSONObject rrJO = new JSONObject(rr);
 
                 if(rrJO.getString("status").equals("0000")) {
                     /* 구매 체결 확인 */
-                    JSONObject orAsk = getResult("OR_BID",currency,rrJO.getString("order_id"));
+//                    JSONObject orAsk = getResult("OR_BID",currency,rrJO.getString("order_id"));
+                        /* 구매 체결 확인 debug */
+                    JSONObject orAsk = new JSONObject("{\"status\":\"5600\"}");
                     System.out.println(orAsk);
                     if(orAsk.getString("status").equals("5600")) {
                         System.out.println("서버오류 order 체크 제외");
