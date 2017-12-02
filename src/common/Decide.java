@@ -205,7 +205,11 @@ public class Decide {
                         log.debug("1% 하락");
                         price.put(currency + "price", ask_price1);
                         price.put(currency + "cnt", String.valueOf(Integer.parseInt((String) price.get(currency + "cnt")) + 1));
-                    } else {
+                    }
+
+                } else {
+                    log.debug("구매 : 판매액 보다 높음");
+                    if ((Integer.parseInt(min_money) < Integer.parseInt(ask_price1))) {
                         price.put(currency + "cnt", String.valueOf(Integer.parseInt((String) price.get(currency + "cnt")) - 1));
                         if (Integer.parseInt(max_money) < Integer.parseInt(ask_price1)) {
                             if (Integer.parseInt((String) price.get(currency + "cnt")) < 1) {
@@ -233,8 +237,6 @@ public class Decide {
                             }
                         }
                     }
-                } else {
-                    log.debug("구매 : 판매액 보다 높음");
                 }
             } else if (currency_search.equals("2")) {
             /*판매*/
