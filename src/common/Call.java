@@ -269,15 +269,15 @@ public class Call {
                     }
 
                     /*maker 구매*/
-//                    String rr = api.callApi("/trade/market_sell", rgParams);
+                    String rr = api.callApi("/trade/market_sell", rgParams);
                     /*구매 debug*/
-                    String rr = "{\"status\":\"0000\"}";
+//                    String rr = "{\"status\":\"0000\"}";
                     JSONObject rrJO = new JSONObject(rr);
                     if(rrJO.getString("status").equals("0000")) {
                         /* 구매 체결 확인 */
-//                        JSONObject orBid = getResult("OR_ASK", rrJO.getString("order_id"));
+                        JSONObject orBid = getResult("OR_ASK", rrJO.getString("order_id"));
                         /* 구매 체결 확인 debug */
-                        JSONObject orBid = new JSONObject("{\"status\":\"5600\"}");
+//                        JSONObject orBid = new JSONObject("{\"status\":\"5600\"}");
                         System.out.println(orBid);
                         if(orBid.getString("status").equals("5600")) {
                             System.out.println("조회된 내역이 없음");
@@ -327,16 +327,17 @@ public class Call {
                     rgParams.put("units", askQuantity);
                 }
 
-//                String rr = api.callApi("/trade/market_buy", rgParams);
+                /*판매 호출*/
+                String rr = api.callApi("/trade/market_buy", rgParams);
                 /*판매 debug*/
-                String rr = "{\"status\":\"0000\"}";
+//                String rr = "{\"status\":\"0000\"}";
                 JSONObject rrJO = new JSONObject(rr);
 
                 if(rrJO.getString("status").equals("0000")) {
                     /* 구매 체결 확인 */
-//                    JSONObject orAsk = getResult("OR_BID",currency,rrJO.getString("order_id"));
+                    JSONObject orAsk = getResult("OR_BID",currency,rrJO.getString("order_id"));
                         /* 구매 체결 확인 debug */
-                    JSONObject orAsk = new JSONObject("{\"status\":\"5600\"}");
+//                    JSONObject orAsk = new JSONObject("{\"status\":\"5600\"}");
                     System.out.println(orAsk);
                     if(orAsk.getString("status").equals("5600")) {
                         System.out.println("서버오류 order 체크 제외");
