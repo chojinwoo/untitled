@@ -250,7 +250,7 @@ public class Call {
     /*maker fee 판매*/
     public int makerSell(String currency, JSONArray bidPrices, String units) {
         log.debug("판매 수량 : " + units);
-        int  flag = 2;
+        int  flag = 2; /* 판매 실패 코드 */
         if(units.equals("0")) {
             log.debug("판매수량 부족");
             flag = 3;
@@ -259,42 +259,53 @@ public class Call {
             rgParams.put("currency", currency);
 
             String temp_unit = units;
-            boolean sellSuc = false;
+            boolean sellSuc = false; /* 판매완료 까지 반복 flag */
             for(int i=0; i<bidPrices.length(); i++) {
                 JSONObject bidJO = bidPrices.getJSONObject(0);
                 String bidQuantity = bidJO.getString("quantity");
                 String bidPrice = bidJO.getString("price");
-//                rgParams.put("price", String.valueOf(bidPrice));
                 if(!sellSuc) {
 
+                    /*현재 내가 가지고 있는 수량 보다 판매 수량이 클때*/
                     if(Double.parseDouble(temp_unit) <= Double.parseDouble(bidQuantity)) {
                         rgParams.put("units", temp_unit);
+                    /*현재 내가 가지고 있는 수량이 판매 수량보다 많을때 판매 수량 뺀 나머지를 수량에 주입*/
                     } else {
-                        temp_unit = String.valueOf(Double.parseDouble(temp_unit) - Double.parseDouble(bidQuantity));
-                        rgParams.put("units", temp_unit);
+                        String tt_unit = String.valueOf(Double.parseDouble(temp_unit) - Double.parseDouble(bidQuantity));
+                        rgParams.put("units", tt_unit);
                     }
 
-                    /*maker 구매*/
+                    /*maker 구매 로직*/
                     String rr = api.callApi("/trade/market_sell", rgParams);
-                    /*구매 debug*/
-//                    String rr = "{\"status\":\"0000\"}";
+                    /* 구매 완료 된 정보 */
                     JSONObject rrJO = new JSONObject(rr);
+                    /*구매 완료 코드 0000 일시 */
                     if(rrJO.getString("status").equals("0000")) {
                         /* 구매 체결 확인 */
                         JSONArray sellResult = rrJO.getJSONArray("data");
                         JSONObject orBid = getResult("OR_ASK", currency, rrJO.getString("order_id"));
                         log.debug(orBid.toString());
+                        /* 구매 완료 된 정보에서 현재 수량에 구매한 구매 뺀 나머지수량*/
                         double remainingUnit = Double.parseDouble(temp_unit) - Double.parseDouble(sellResult.getJSONObject(0).getString("units"));
                         int ru = (int) remainingUnit;
                         temp_unit = String.valueOf(ru);
+                        /* 오류및 체결 정보 없음 모든 값이 5600 코드로 들어옴 */
                         if(orBid.getString("status").equals("5600")) {
                             log.debug("조회된 내역이 없음");
+                            /* 나머지 수량이 0 일시 반복 플래그 정지 상태로 */
                             if (Integer.parseInt(temp_unit) == 0) {
                                 sellSuc = true;
-                                flag = 1;
+                                flag = 1; /* 판매 성공 코드 */
                             }
+                        /* maker fee 구매 대기중일때 0000 코드로 들어옴*/
                         } else if(orBid.getString("status").equals("0000")) {
+                            /* 구매 대기중인 판매 목록 삭제*/
                             getResult("OR_CANCEL", currency, orBid.getString("order_id"));
+                            /* 구매 취소된 수량 원복*/
+                            double sumTmpUnit = Double.parseDouble(temp_unit) + Double.parseDouble(sellResult.getJSONObject(0).getString("units"));
+                            int stu = (int) remainingUnit;
+                            temp_unit = String.valueOf(stu);
+                            /* 혹시 모를 오류 방지를 위해 수량 체크*/
                             if (Integer.parseInt(temp_unit) == 0) {
                                 sellSuc = true;
                                 flag = 1;
@@ -312,52 +323,65 @@ public class Call {
     /*maker fee 구매*/
     public int makerBuy(String currency, JSONArray askPrices, String krw) {
         log.debug("구매 금액: " + krw);
-        int  flag = 2;
+        int  flag = 2; /* 구매 불가 코드 */
         HashMap<String, String> rgParams = new HashMap<String, String>();
         rgParams.put("currency", currency);
+        /* 현재 나의 잔금*/
         String temp_krw = krw;
-        boolean buySuc = false;
+        boolean buySuc = false; /* 루프 반복 여부 flag*/
+        /* 매도 리스트 반복문 */
         for(int i=0; i<askPrices.length(); i++) {
-            JSONObject askJO = askPrices.getJSONObject(0);
+            JSONObject askJO = askPrices.getJSONObject(i);
+            /* 매도 수량*/
             String askQuantity = askJO.getString("quantity");
+            /*매도 금액*/
             String askPrice = askJO.getString("price");
+
+            /*최소 구매량의 금액 산출*/
             double mv = Integer.parseInt(askPrice) * Double.parseDouble(Util.getCurrencyMinQuantity(currency));
             String minValue = String.valueOf((int)mv);
+
             rgParams.put("price", String.valueOf(askPrice));
             String temp_unit = Util.krwToUnits(currency, krw, askPrice);
             if(!buySuc) {
 
+                /* 사려는 수량 보다 많을때*/
                 if(Double.parseDouble(temp_unit) <= Double.parseDouble(askQuantity)) {
                     rgParams.put("units", temp_unit);
+                /*사려는 수량 보다 작을때*/
                 } else {
-                    String.valueOf(Double.parseDouble(temp_unit) - Double.parseDouble(askQuantity));
-                    krw = Util.decimalRemove(Integer.parseInt(krw) - (Integer.parseInt(minValue) * Double.parseDouble(askQuantity)));
                     rgParams.put("units", askQuantity);
                 }
 
-                /*판매 호출*/
+                /*구매 호출*/
                 String rr = api.callApi("/trade/market_buy", rgParams);
-                /*판매 debug*/
-//                String rr = "{\"status\":\"0000\"}";
+
+                /*판매 정보 받아오기*/
                 JSONObject rrJO = new JSONObject(rr);
 
+                /* 판매 성공했을시 */
                 if(rrJO.getString("status").equals("0000")) {
                     /* 구매 체결 확인 */
                     JSONObject orAsk = getResult("OR_BID",currency,rrJO.getString("order_id"));
-                        /* 구매 체결 확인 debug */
-//                    JSONObject orAsk = new JSONObject("{\"status\":\"5600\"}");
                     log.debug(orAsk.toString());
+
+                    JSONArray buyResult = rrJO.getJSONArray("data");
+
+                    /* 현재 나의 잔금에서 구매한 가겨을뺀 금액*/
+                    temp_krw = String.valueOf(Integer.parseInt(temp_krw) - buyResult.getJSONObject(0).getInt("total"));
+
                     if(orAsk.getString("status").equals("5600")) {
-                        log.debug("서버오류 order 체크 제외");
-                        /*금액비교*/
-                        JSONArray buyResult = rrJO.getJSONArray("data");
-                        krw = String.valueOf(Integer.parseInt(krw) - buyResult.getJSONObject(0).getInt("total"));
+                        log.debug("체결 내역 없음 및 오류");
+                        /* 최소 구매 가격보다 작을때*/
                         if(Integer.parseInt(minValue) > Integer.parseInt(krw)) {
                             buySuc = true;
                             flag = 1;
                         }
+                   /* maker fee 구매 대기중일때 0000 코드로 들어옴*/
                     } else if(orAsk.getString("status").equals("0000")) {
                         getResult("OR_CANCEL", currency, orAsk.getString("order_id"));
+                        /*구매가 원복*/
+                        temp_krw = String.valueOf(Integer.parseInt(temp_krw) +  buyResult.getJSONObject(0).getInt("total"));
                         if(Integer.parseInt(minValue) > Integer.parseInt(krw)) {
                             buySuc = true;
                             flag = 1;
