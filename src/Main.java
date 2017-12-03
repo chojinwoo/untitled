@@ -20,19 +20,19 @@ public class Main {
     static HashMap priceMap = new HashMap();
     static JSONArray useCurrency = null;
 
-    static void init(String[] currencies) {
+    static void init(List<String> currencies) {
         /*설정값 정의 최대 최소 퍼센트 정의*/
 
-        priceMap.put("ETH_max_per", 1.0);
-        priceMap.put("ETH_min_per", 1.0);
+        priceMap.put("ETH_max_per", 0.5);
+        priceMap.put("ETH_min_per", 0.5);
         priceMap.put("BTC_max_per", 0.5);
         priceMap.put("BTC_min_per", 0.5);
-        priceMap.put("BCH_max_per", 1.0);
-        priceMap.put("BCH_min_per", 1.0);
-        priceMap.put("XRP_max_per", 1.0);
-        priceMap.put("XRP_min_per", 1.0);
-        priceMap.put("ETC_max_per", 1.0);
-        priceMap.put("ETC_min_per", 1.0);
+        priceMap.put("BCH_max_per", 0.5);
+        priceMap.put("BCH_min_per", 0.5);
+        priceMap.put("XRP_max_per", 0.5);
+        priceMap.put("XRP_min_per", 0.5);
+        priceMap.put("ETC_max_per", 0.5);
+        priceMap.put("ETC_min_per", 0.5);
         useCurrency = new JSONArray();
         for(String currency : currencies) {
             useCurrency.put(currency);
@@ -46,6 +46,7 @@ public class Main {
         JSONObject config = call.getConfig("BTC");
         config.put("useCurrency", useCurrency);
         decide.pattern2(config, priceMap);
+        log.debug("------------------------------------------------------------------------------------------");
     };
 
     static Runnable eth = () -> {
@@ -55,6 +56,7 @@ public class Main {
         JSONObject config = call.getConfig("ETH");
         config.put("useCurrency", useCurrency);
         decide.pattern2(config, priceMap);
+        log.debug("------------------------------------------------------------------------------------------");
     };
 
     static Runnable bch = () -> {
@@ -64,6 +66,7 @@ public class Main {
         JSONObject config = call.getConfig("BCH");
         config.put("useCurrency", useCurrency);
         decide.pattern2(config, priceMap);
+        log.debug("------------------------------------------------------------------------------------------");
     };
 
     static Runnable xrp = () -> {
@@ -73,6 +76,7 @@ public class Main {
         JSONObject config = call.getConfig("XRP");
         config.put("useCurrency", useCurrency);
         decide.pattern2(config, priceMap);
+        log.debug("------------------------------------------------------------------------------------------");
     };
 
     static Runnable etc = () -> {
@@ -82,6 +86,7 @@ public class Main {
         JSONObject config = call.getConfig("ETC");
         config.put("useCurrency", useCurrency);
         decide.pattern2(config, priceMap);
+        log.debug("------------------------------------------------------------------------------------------");
     };
 
     public static void main(String args[]) {
@@ -92,7 +97,10 @@ public class Main {
             *  통화 종류 선택
             *  BTC : 비트코인, ETH : 이더리움, BCH : 비트코인캐쉬, XRP : 리플 ETC : 이더리움 클래식
             *  */
-            String[] currencies = new String[]{"BTC"};
+            List<String> currencies = new LinkedList<String>();
+            for(String arg : args) {
+                currencies.add(arg);
+            }
 
             /*기본 설정값 정의*/
             init(currencies);

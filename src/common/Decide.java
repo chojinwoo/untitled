@@ -22,7 +22,6 @@ public class Decide {
         String min_money = Util.getMinMoney(currency_price, (Double) price.get(currency+"_min_per"));
         String max_money = Util.getMaxMoney(currency_price, (Double) price.get(currency+"_max_per"));
         log.debug(currency + " start");
-        log.debug(config.toString());
         log.debug("default price : " +price.get(currency+"price"));
         log.debug("min : " + min_money + " max : " + max_money);
         /*order book 내역*/
@@ -113,7 +112,7 @@ public class Decide {
                         log.debug("1%하락 판매");
                         log.debug("SUCCESS 판매 프로세스 실행");
                         log.debug(config.toString());
-                        int flag = call.sell(currency, bid_price1, Util.getUnits(currency, avaCoin));
+                        int flag = call.sell(currency, bid_price1, Util.getDecimalRemoveUnits(currency, avaCoin));
 
                         log.debug("판매 결과값 : " + flag);
                         switch (flag) {
@@ -123,7 +122,7 @@ public class Decide {
                                 break;
                             case 2:
                                 log.debug("판매 실패");
-                                int subFlag = call.sell(currency, bid_price1, Util.getUnits(currency, avaCoin));
+                                int subFlag = call.sell(currency, bid_price1, Util.getDecimalRemoveUnits(currency, avaCoin));
                                 switch (subFlag) {
                                     case 1:
                                         price.put(currency+"price", ask_price1);
@@ -155,7 +154,6 @@ public class Decide {
         String min_money = Util.getMinMoney(currency_price, (Double) price.get(currency+"_min_per"));
         String max_money = Util.getMaxMoney(currency_price, (Double) price.get(currency+"_max_per"));
         log.debug(currency + " start");
-        log.debug(config.toString());
         log.debug("default price : " +price.get(currency+"price"));
         log.debug("min : " + min_money + " max : " + max_money);
         /*order book 내역*/
@@ -179,24 +177,97 @@ public class Decide {
             price.put(currency+"cnt", "0");
             try {
                 search = config.getString("search");
-                if(search.equals("2")) {
-                    price.put(currency+"search", "1");
-                    price.put(currency + "price", ask_price1);
-//                    int flag = call.makerSell(currency, bidsJA, Util.getUnits(currency, avaCoin));
-                } else if(search.equals("1")) {
-                    price.put(currency+"search", "2");
-                    price.put(currency + "price", bid_price1);
-//                    int flag = call.makerSell(currency, bidsJA, Util.getUnits(currency, avaCoin));
+                if(search.equals("2")) { /* search = 2 일시 판매 완료 구매개시*/
+
+                    log.debug("SUCCESS 구매 프로세서");
+                    int avaCnt = call.getBuyCurrencyCnt(config); /* 구매할 비트코인종류의 카운트 */
+                    String krw = String.valueOf(Integer.parseInt(myKrw) / avaCnt);
+                    int flag = call.makerBuy(currency, asksJA, krw);
+                    log.debug("구매 결과값 : " + flag);
+                    switch (flag) {
+                        case 1:
+                            price.put(currency + "price", bid_price1);
+                            price.put(currency + "search", "1");
+                            break;
+                        case 2:
+                            log.debug("구매 실패");
+                            break;
+                        case 3:
+                            log.debug("수량부족");
+                            break;
+                    }
+                } else if(search.equals("1")) { /* search = 1 구매완료  판매개시*/
+
+                    log.debug("SUCCESS 판매 프로세스 실행");
+                    int flag = call.makerSell(currency, bidsJA, Util.getDecimalRemoveUnits(currency, avaCoin));
+                    log.debug("판매 결과값 : " + flag);
+                    switch (flag) {
+                        case 1:
+                            price.put(currency+"price", ask_price1);
+                            price.put(currency+"search", "2");
+                            break;
+                        case 2:
+                            log.debug("판매 실패");
+                            break;
+                        case 3:
+                            log.debug("수량부족");
+                            break;
+                    }
                 }
             } catch(Exception e) {
-                price.put(currency+"search", "1");
-                price.put(currency + "price", ask_price1);
-//                int flag = call.makerSell(currency, bidsJA, Util.getUnits(currency, avaCoin));
+                log.debug("SUCCESS 구매 프로세서");
+                int avaCnt = call.getBuyCurrencyCnt(config); /* 구매할 비트코인종류의 카운트 */
+                String krw = String.valueOf(Integer.parseInt(myKrw) / avaCnt);
+                int flag = call.makerBuy(currency, asksJA, krw);
+                log.debug("구매 결과값 : " + flag);
+                switch (flag) {
+                    case 1:
+                        price.put(currency + "price", bid_price1);
+                        price.put(currency + "search", "1");
+                        break;
+                    case 2:
+                        log.debug("구매 실패");
+                        break;
+                    case 3:
+                        log.debug("수량부족");
+                        break;
+                }
             }
 
         } else {
             currency_search = (String) price.get(currency+"search");
-            if (currency_search.equals("1")) {
+            if (currency_search.equals("1")) {/* search = 1 구매완료  판매개시*/
+                /*판매*/
+                log.debug("bid1 : " + bid_price1 + " bid2 : " + bid_price2 + " bid3 : " + bid_price3 + " bid4 : " + bid_price4 + " bid5 : " + bid_price5);
+                if(Integer.parseInt(currency_price) < Integer.parseInt(bid_price1)) {
+                    log.debug("판매 : 구매 금액보다 높음");
+                    if(Integer.parseInt(max_money) < Integer.parseInt(bid_price1)) {
+                        log.debug("1% 상승 최근구매액 현 매도 금액으로 재설정");
+                        price.put(currency+"price", bid_price1);
+                    }
+                } else if(Integer.parseInt(currency_price) >= Integer.parseInt(bid_price1)) {
+                    log.debug("판매 : 구매 금액보다 낮음");
+                    if (Integer.parseInt(min_money) > Integer.parseInt(bid_price1)) {
+                        log.debug("1%하락 판매");
+                        log.debug("SUCCESS 판매 프로세스 실행");
+                        int flag = call.makerSell(currency, bidsJA, Util.getDecimalRemoveUnits(currency, avaCoin));
+                        log.debug("판매 결과값 : " + flag);
+                        switch (flag) {
+                            case 1:
+                                price.put(currency+"price", ask_price1);
+                                price.put(currency+"search", "2");
+                                break;
+                            case 2:
+                                log.debug("판매 실패");
+                                break;
+                            case 3:
+                                log.debug("수량부족");
+                                break;
+                        }
+
+                    }
+                }
+            } else if (currency_search.equals("2")) {/* search = 2 일시 판매 완료 구매개시*/
                 /*구매*/
                 log.debug("ask1 : " + ask_price1 + " ask2 : " + ask_price2 + " ask3 : " + ask_price3 + " ask4 : " + ask_price4 + " ask5 : " + ask_price5);
                 if(Integer.parseInt(currency_price) > Integer.parseInt(ask_price1)) {
@@ -222,7 +293,7 @@ public class Decide {
                                 switch (flag) {
                                     case 1:
                                         price.put(currency + "price", bid_price1);
-                                        price.put(currency + "search", "2");
+                                        price.put(currency + "search", "1");
                                         break;
                                     case 2:
                                         log.debug("구매 실패");
@@ -236,37 +307,6 @@ public class Decide {
                                 price.put(currency + "cnt", "0");
                             }
                         }
-                    }
-                }
-            } else if (currency_search.equals("2")) {
-            /*판매*/
-                log.debug("bid1 : " + bid_price1 + " bid2 : " + bid_price2 + " bid3 : " + bid_price3 + " bid4 : " + bid_price4 + " bid5 : " + bid_price5);
-                if(Integer.parseInt(currency_price) < Integer.parseInt(bid_price1)) {
-                    log.debug("판매 : 구매 금액보다 높음");
-                    if(Integer.parseInt(max_money) < Integer.parseInt(bid_price1)) {
-                        log.debug("1% 상승 최근구매액 현 매도 금액으로 재설정");
-                        price.put(currency+"price", bid_price1);
-                    }
-                } else if(Integer.parseInt(currency_price) >= Integer.parseInt(bid_price1)) {
-                    log.debug("판매 : 구매 금액보다 낮음");
-                    if (Integer.parseInt(min_money) > Integer.parseInt(bid_price1)) {
-                        log.debug("1%하락 판매");
-                        log.debug("SUCCESS 판매 프로세스 실행");
-                        int flag = call.makerSell(currency, bidsJA, Util.getUnits(currency, avaCoin));
-                        log.debug("판매 결과값 : " + flag);
-                        switch (flag) {
-                            case 1:
-                                price.put(currency+"price", ask_price1);
-                                price.put(currency+"search", "1");
-                                break;
-                            case 2:
-                                log.debug("판매 실패");
-                                break;
-                            case 3:
-                                log.debug("수량부족");
-                                break;
-                        }
-
                     }
                 }
             }

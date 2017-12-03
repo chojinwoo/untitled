@@ -94,7 +94,6 @@ public class Call {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        log.debug(result);
         JSONObject jo = new JSONObject(result);
         return jo;
     }
@@ -312,6 +311,16 @@ public class Call {
                             }
                         }
 
+                    } else {
+                        JSONObject ut = getResult("BL", currency);
+                        JSONObject utJA = ut.getJSONObject("data");
+                        String avaCoin = utJA.getString("available_"+currency.toLowerCase());
+                        if(Double.parseDouble(avaCoin) < Double.parseDouble(temp_unit)) {
+                            sellSuc = true;
+                            flag = 1;
+                        } else {
+                            temp_unit = avaCoin;
+                        }
                     }
                 }
             }
@@ -350,7 +359,7 @@ public class Call {
                     rgParams.put("units", temp_unit);
                 /*사려는 수량 보다 작을때*/
                 } else {
-                    rgParams.put("units", askQuantity);
+                    rgParams.put("units", Util.getDecimalRemoveUnits(currency, askQuantity));
                 }
 
                 /*구매 호출*/
@@ -373,7 +382,7 @@ public class Call {
                     if(orAsk.getString("status").equals("5600")) {
                         log.debug("체결 내역 없음 및 오류");
                         /* 최소 구매 가격보다 작을때*/
-                        if(Integer.parseInt(minValue) > Integer.parseInt(krw)) {
+                        if(Integer.parseInt(minValue) > Integer.parseInt(temp_krw)) {
                             buySuc = true;
                             flag = 1;
                         }
@@ -386,6 +395,16 @@ public class Call {
                             buySuc = true;
                             flag = 1;
                         }
+                    }
+                } else {
+                    JSONObject ut = getResult("BL", currency);
+                    JSONObject utJO = ut.getJSONObject("data");
+                    String avaKrw = String.valueOf(utJO.getInt("available_krw"));
+                    if(Integer.parseInt(minValue) > Integer.parseInt(avaKrw)) {
+                        buySuc = true;
+                        flag = 1;
+                    } else {
+                        temp_krw = avaKrw;
                     }
                 }
             }

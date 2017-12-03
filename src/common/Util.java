@@ -87,6 +87,8 @@ public class Util {
 	
 		return string.toString();
     }
+
+    /*입력된 금액으로 구매 최대 수량 확인*/
 	public static String krwToUnits(String currency, String myMoney, String price) {
 		double units  = Integer.parseInt(myMoney) / Double.parseDouble(price);
 		NumberFormat nf = NumberFormat.getInstance();
@@ -96,7 +98,8 @@ public class Util {
 		return nf.format(units);
 	}
 
-	public static String getUnits(String currency, String units) {
+	/*입력된 수량 최소 구매수량 소수점 까지 자르기 */
+	public static String getDecimalRemoveUnits(String currency, String units) {
 		double unit = Double.parseDouble(units);
 		NumberFormat nf = NumberFormat.getInstance();
 		nf.setMaximumFractionDigits(getDecimalCnt(currency));
@@ -105,6 +108,7 @@ public class Util {
 		return nf.format(unit);
 	}
 
+	/* 입력된값 소수점 자르기 */
 	public static String decimalRemove(double value) {
 		System.out.println(value);
 		NumberFormat nf = NumberFormat.getInstance();
@@ -117,6 +121,7 @@ public class Util {
 	/*BTC: 0.001 | ETH: 0.01 | DASH: 0.01 | LTC: 0.1 | ETC: 0.1 | XRP: 10 | BCH: 0.001 | XMR: 0.01 | ZEC: 0.001 | QTUM: 0.1 | BTG: 0.01)
 - 1회 최대 수량 (BTC: 300 | ETH: 2,500 | DASH: 4,000 | LTC: 15,000 | ETC: 30,000 | XRP: 2,500,000 | BCH: 1,200 | XMR: 10,000 | ZEC: 2,500 | QTUM: 30,000 | BTG: 1,200*/
 
+	/*통화별 최소 수량 */
 	public static String getCurrencyMinQuantity(String currency) {
 		JSONObject decimal = new JSONObject();
 		decimal.put("BTC", "0.001");
@@ -125,7 +130,7 @@ public class Util {
 		decimal.put("LTC", "0.1");
 		decimal.put("ETC", "0.1");
 		decimal.put("XRP", "10");
-		decimal.put("BCH:", "0.001");
+		decimal.put("BCH", "0.001");
 		decimal.put("XMR", "0.01");
 		decimal.put("ZEC", "0.001");
 		decimal.put("QTUM", "0.1");
@@ -134,6 +139,7 @@ public class Util {
 
 	}
 
+	/*통화별 최대 소수점 */
 	public static int getDecimalCnt(String currency) {
 		JSONObject decimal = new JSONObject();
 		decimal.put("BTC", 3);
@@ -142,7 +148,7 @@ public class Util {
 		decimal.put("LTC", 1);
 		decimal.put("ETC", 1);
 		decimal.put("XRP", 0);
-		decimal.put("BCH:", 3);
+		decimal.put("BCH", 3);
 		decimal.put("XMR", 2);
 		decimal.put("ZEC", 3);
 		decimal.put("QTUM", 1);
@@ -150,6 +156,7 @@ public class Util {
 		return (int)decimal.get(currency);
 	}
 
+	/*현재 시간에 몇분 뺀 시간 구하기 */
 	public static String getRemoveMinuteTime(int minute) {
 		Date date = new Date();
 		SimpleDateFormat sdf = new SimpleDateFormat("yyMMddkkmmss");
@@ -165,6 +172,7 @@ public class Util {
 		return sdf.format(cal.getTime());
 	}
 
+	/*최소 금액 구하기*/
 	public static String getMinMoney(String price, double min_per) {
 		try {
 			int s = (int) (Integer.parseInt(price) * (0.01 * min_per));
@@ -174,6 +182,7 @@ public class Util {
 		}
 	}
 
+	/*최대 금액 구하기*/
 	public static String getMaxMoney(String price, double max_per) {
 		try {
 			int s = (int) (Integer.parseInt(price) * (0.01 * max_per));
