@@ -364,7 +364,7 @@ public class Decide {
 
         if(loopFlag) {
             log.debug(currency + "시작");
-            log.debug("현재 금액 : " + myKrw + " 현금 코인 : " + avaCoin);
+            log.debug("현재 금액 : " + myKrw + " 현금 코인 : " + avaCoin + " 최종 거래금액 : " + priceMap.get(currency+"price"));
             log.debug("매도1 : " + ask_price1 + " 매도2 : " + ask_price2);
             log.debug("매수1 : " + bid_price1 + " 매수2 : " + bid_price2);
 
