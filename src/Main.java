@@ -37,6 +37,14 @@ public class Main {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
         String nowDate = sdf.format(new Date());
         priceMap.put("nowDate", nowDate);
+
+
+        priceMap.put("ETHsellCnt", "1");
+        priceMap.put("BTCsellCnt", "1");
+        priceMap.put("BCHsellCnt", "1");
+        priceMap.put("XRPsellCnt", "1");
+        priceMap.put("ETCsellCnt", "1");
+
         /*-------------*/
         useCurrency = new JSONArray();
         for(String currency : currencies) {

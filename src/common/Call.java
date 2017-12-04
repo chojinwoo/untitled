@@ -11,8 +11,13 @@ import java.util.*;
 public class Call {
     static Logger log = LoggerFactory.getLogger(Decide.class);
 
+//    bangae2
     String apiKey = "";
     String secretKey = "";
+//    bangae20
+//    String apiKey = "";
+//    String secretKey = "";
+
     private Api_Client api = null;
 
     public Call() {
