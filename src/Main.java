@@ -33,6 +33,11 @@ public class Main {
         priceMap.put("XRP_min_per", 0.5);
         priceMap.put("ETC_max_per", 0.5);
         priceMap.put("ETC_min_per", 0.5);
+        /*패턴3 에서 사용*/
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+        String nowDate = sdf.format(new Date());
+        priceMap.put("nowDate", nowDate);
+        /*-------------*/
         useCurrency = new JSONArray();
         for(String currency : currencies) {
             useCurrency.put(currency);
@@ -45,7 +50,7 @@ public class Main {
         Decide decide = new Decide();
         JSONObject config = call.getConfig("BTC");
         config.put("useCurrency", useCurrency);
-        decide.pattern2(config, priceMap);
+        decide.pattern3(config, priceMap);
         log.debug("------------------------------------------------------------------------------------------");
     };
 
@@ -55,7 +60,7 @@ public class Main {
         Decide decide = new Decide();
         JSONObject config = call.getConfig("ETH");
         config.put("useCurrency", useCurrency);
-        decide.pattern2(config, priceMap);
+        decide.pattern3(config, priceMap);
         log.debug("------------------------------------------------------------------------------------------");
     };
 
@@ -65,7 +70,7 @@ public class Main {
         Decide decide = new Decide();
         JSONObject config = call.getConfig("BCH");
         config.put("useCurrency", useCurrency);
-        decide.pattern2(config, priceMap);
+        decide.pattern3(config, priceMap);
         log.debug("------------------------------------------------------------------------------------------");
     };
 
@@ -75,7 +80,7 @@ public class Main {
         Decide decide = new Decide();
         JSONObject config = call.getConfig("XRP");
         config.put("useCurrency", useCurrency);
-        decide.pattern2(config, priceMap);
+        decide.pattern3(config, priceMap);
         log.debug("------------------------------------------------------------------------------------------");
     };
 
@@ -85,7 +90,7 @@ public class Main {
         Decide decide = new Decide();
         JSONObject config = call.getConfig("ETC");
         config.put("useCurrency", useCurrency);
-        decide.pattern2(config, priceMap);
+        decide.pattern3(config, priceMap);
         log.debug("------------------------------------------------------------------------------------------");
     };
 
