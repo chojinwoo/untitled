@@ -338,31 +338,20 @@ public class Decide {
         String currency = config.getString("currency"); /* 선택한 통화 */
         String search = config.getString("search"); /* 1 : 구매 완료 2: 판매 완료 */
         try {
-            String price = config.getString("price"); /* 마지막 거래 금액 */
-            priceMap.put(currency + "price", price);
-            priceMap.put(currency + "search", search);
+            int loopCnt = Integer.parseInt(String.valueOf(priceMap.get(currency+"threadCnt")));
+            if(loopCnt == 1) {
+                String price = config.getString("price"); /* 마지막 거래 금액 */
+                priceMap.put(currency + "price", price);
+                priceMap.put(currency + "search", search);
+            }
         }catch(Exception e) {
             priceMap.put(currency+"price",ask_price1);
             priceMap.put(currency + "search", "2");
         }
 
-        /*하루가 넘어가는날에 기준값 초기화*/
-//        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-//        String nowDate = sdf.format(new Date());
-//        if(!nowDate.equals((String)priceMap.get("nowDate"))) {
-//            log.debug("자정 기본값을 초기화 합니다.");
-//            priceMap.put("nowDate", nowDate);
-//            if(String.valueOf(priceMap.get(currency+"search")).equals("1")) {
-//                log.debug("판매중 : " + ask_price1 + "원으로 초기화");
-//                priceMap.put(currency + "price", ask_price1);
-//            } else {
-//                log.debug("가격 하락및 해당금액에 합당하지 못하여 초기화 값 설정 실패");
-//                log.debug("수동으로 구매해 주세요.");
-//                loopFlag = false;
-//            }
-//        }
-        /* 3시간 단위 기준값 초기화*/
-        int dateCnt = 1;
+
+        /* 2시간 단위 기준값 초기화*/
+        int dateCnt = Integer.parseInt((String)priceMap.get(currency+"dateCnt"));
         SimpleDateFormat sdf2 = new SimpleDateFormat("kk");
         int hour = Integer.parseInt(sdf2.format(new Date()));
         if(hour % 2 ==0) {
@@ -376,22 +365,45 @@ public class Decide {
                     loopFlag = false;
                 }
             }
-            dateCnt++;
+            priceMap.put(currency+"dateCnt", String.valueOf(dateCnt + 1));
         } else {
-            dateCnt = 1;
+            priceMap.put(currency+"dateCnt", "1");
         }
 
         if(loopFlag) {
             log.debug(currency + "시작");
-            log.debug("현재 금액 : " + myKrw + " 현금 코인 : " + avaCoin + " 최종 거래금액 : " + priceMap.get(currency+"price"));
+            try {
+                log.debug("현재 금액 : " + myKrw + " 현금 코인 : " + avaCoin + " 최종 거래금액 : " + config.getString("price") + " 변경된 금액 : " + priceMap.get(currency + "price"));
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
             log.debug("매도1 : " + ask_price1 + " 매도2 : " + ask_price2);
             log.debug("매수1 : " + bid_price1 + " 매수2 : " + bid_price2);
+            double etc = Double.parseDouble(ask_price1) - Double.parseDouble((String)priceMap.get(currency + "price"));
+            String percent1 = Util.decimalRemove(etc / Double.parseDouble((String)priceMap.get(currency + "price")) * 100, 2);
+
+            etc = Double.parseDouble(ask_price1) - Double.parseDouble((String)config.getString("price"));
+            String percent2 = Util.decimalRemove(etc / Double.parseDouble((String)config.get("price")) * 100, 2);
+            log.debug("최종거래 퍼센트 : "+percent2 +" 현재 퍼센트 : " +percent1);
+
+
 
             /* 구매 완료 판매 개시 */
             if (String.valueOf(priceMap.get(currency + "search")).equals("1")) {
+
+                log.debug("처음실행 기준값을 초기화 합니다.");
+                /*처음 시작시 퍼센트가 0보다 크면 기준값 초기화*/
+                int loopCnt = Integer.parseInt(String.valueOf(priceMap.get(currency+"threadCnt")));
+                if(loopCnt == 1) {
+                    if(Double.parseDouble(percent1) > 0) {
+                        log.debug("처음실행 기준값을 초기화 합니다.");
+                        priceMap.put(currency + "price", ask_price1);
+                    }
+                }
+
                 log.debug("구매 완료 판매 개시");
                 /*판매 금액 - 현금액의 2%제외한 금액*/
-                String min_money = Util.getMinMoney((String) priceMap.get(currency + "price"), 1.5);
+                String min_money = Util.getMinMoney((String) priceMap.get(currency + "price"), Double.parseDouble(String.valueOf(priceMap.get(currency+"_min_per"))));
                 log.debug("최소금액 : " + min_money);
 
                 if (Integer.parseInt(bid_price1) < Integer.parseInt(min_money)) { /*매수 금액 이 최소금액 보다 작을때 현재 코인 판매*/
@@ -467,5 +479,8 @@ public class Decide {
                 }
             }
         }
+        int threadCnt = Integer.parseInt(String.valueOf(priceMap.get(currency+"threadCnt")));
+        threadCnt = threadCnt + 1;
+        priceMap.put(currency+"threadCnt", threadCnt);
     }
 }

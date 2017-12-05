@@ -23,32 +23,44 @@ public class Main {
     static void init(List<String> currencies) {
         /*설정값 정의 최대 최소 퍼센트 정의*/
 
-        priceMap.put("ETH_max_per", 0.5);
-        priceMap.put("ETH_min_per", 0.5);
-        priceMap.put("BTC_max_per", 0.5);
-        priceMap.put("BTC_min_per", 0.5);
-        priceMap.put("BCH_max_per", 0.5);
-        priceMap.put("BCH_min_per", 0.5);
-        priceMap.put("XRP_max_per", 0.5);
-        priceMap.put("XRP_min_per", 0.5);
-        priceMap.put("ETC_max_per", 0.5);
-        priceMap.put("ETC_min_per", 0.5);
+        priceMap.put("BTC_max_per", 1);
+        priceMap.put("BTC_min_per", 1);
+        priceMap.put("ETH_max_per", 2);
+        priceMap.put("ETH_min_per", 2);
+        priceMap.put("DASH_max_per", 2);
+        priceMap.put("DASH_min_per", 2);
+        priceMap.put("LTC_max_per", 3);
+        priceMap.put("LTC_min_per", 3);
+        priceMap.put("ETC_max_per", 5);
+        priceMap.put("ETC_min_per", 5);
+        priceMap.put("XRP_max_per", 5);
+        priceMap.put("XRP_min_per", 5);
+        priceMap.put("BCH_max_per", 1.5);
+        priceMap.put("BCH_min_per", 1.5);
+        priceMap.put("XMR_max_per", 3);
+        priceMap.put("XMR_min_per", 3);
+        priceMap.put("ZEC_max_per", 3);
+        priceMap.put("ZEC_min_per", 3);
+        priceMap.put("QTUM_max_per", 5);
+        priceMap.put("QTUM_min_per", 3);
+        priceMap.put("BTG_max_per", 3);
+        priceMap.put("BTG_min_per", 3);
+
         /*패턴3 에서 사용*/
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
         String nowDate = sdf.format(new Date());
         priceMap.put("nowDate", nowDate);
 
 
-        priceMap.put("ETHsellCnt", "1");
-        priceMap.put("BTCsellCnt", "1");
-        priceMap.put("BCHsellCnt", "1");
-        priceMap.put("XRPsellCnt", "1");
-        priceMap.put("ETCsellCnt", "1");
 
         /*-------------*/
         useCurrency = new JSONArray();
         for(String currency : currencies) {
             useCurrency.put(currency);
+
+            priceMap.put(currency+"sellCnt", "1");
+            priceMap.put(currency+"dateCnt", "1");
+            priceMap.put(currency+"threadCnt", "1");
         }
     }
 
@@ -102,6 +114,16 @@ public class Main {
         log.debug("------------------------------------------------------------------------------------------");
     };
 
+    static Runnable xmr = () -> {
+        String threadName = Thread.currentThread().getName();
+        Call call = new Call();
+        Decide decide = new Decide();
+        JSONObject config = call.getConfig("XMR");
+        config.put("useCurrency", useCurrency);
+        decide.pattern3(config, priceMap);
+        log.debug("------------------------------------------------------------------------------------------");
+    };
+
     public static void main(String args[]) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHH");
         try {
@@ -138,6 +160,9 @@ public class Main {
                             break;
                         case "ETC":
                             thread.add(new Thread(etc));
+                            break;
+                        case "XMR":
+                            thread.add(new Thread(xmr));
                             break;
                     }
                 }

@@ -110,9 +110,17 @@ public class Util {
 
 	/* 입력된값 소수점 자르기 */
 	public static String decimalRemove(double value) {
-		System.out.println(value);
 		NumberFormat nf = NumberFormat.getInstance();
 		nf.setMaximumFractionDigits(1);
+		nf.setRoundingMode(RoundingMode.DOWN);
+		nf.setGroupingUsed(true);
+		return nf.format(value);
+	}
+
+	/* 입력된값 소수점 자르기 */
+	public static String decimalRemove(double value, int digit) {
+		NumberFormat nf = NumberFormat.getInstance();
+		nf.setMaximumFractionDigits(digit);
 		nf.setRoundingMode(RoundingMode.DOWN);
 		nf.setGroupingUsed(true);
 		return nf.format(value);
