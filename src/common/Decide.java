@@ -347,19 +347,38 @@ public class Decide {
         }
 
         /*하루가 넘어가는날에 기준값 초기화*/
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-        String nowDate = sdf.format(new Date());
-        if(!nowDate.equals((String)priceMap.get("nowDate"))) {
-            log.debug("자정 기본값을 초기화 합니다.");
-            priceMap.put("nowDate", nowDate);
-            if(String.valueOf(priceMap.get(currency+"search")).equals("1")) {
-                log.debug("판매중 : " + ask_price1 + "원으로 초기화");
-                priceMap.put(currency + "price", ask_price1);
-            } else {
-                log.debug("가격 하락및 해당금액에 합당하지 못하여 초기화 값 설정 실패");
-                log.debug("수동으로 구매해 주세요.");
-                loopFlag = false;
+//        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+//        String nowDate = sdf.format(new Date());
+//        if(!nowDate.equals((String)priceMap.get("nowDate"))) {
+//            log.debug("자정 기본값을 초기화 합니다.");
+//            priceMap.put("nowDate", nowDate);
+//            if(String.valueOf(priceMap.get(currency+"search")).equals("1")) {
+//                log.debug("판매중 : " + ask_price1 + "원으로 초기화");
+//                priceMap.put(currency + "price", ask_price1);
+//            } else {
+//                log.debug("가격 하락및 해당금액에 합당하지 못하여 초기화 값 설정 실패");
+//                log.debug("수동으로 구매해 주세요.");
+//                loopFlag = false;
+//            }
+//        }
+        /* 3시간 단위 기준값 초기화*/
+        int dateCnt = 1;
+        SimpleDateFormat sdf2 = new SimpleDateFormat("kk");
+        int hour = Integer.parseInt(sdf2.format(new Date()));
+        if(hour % 2 ==0) {
+            if(dateCnt == 1) {
+                if(String.valueOf(priceMap.get(currency+"search")).equals("1")) {
+                    log.debug("판매중 : " + ask_price1 + "원으로 초기화");
+                    priceMap.put(currency + "price", ask_price1);
+                } else {
+                    log.debug("가격 하락및 해당금액에 합당하지 못하여 초기화 값 설정 실패");
+                    log.debug("수동으로 구매해 주세요.");
+                    loopFlag = false;
+                }
             }
+            dateCnt++;
+        } else {
+            dateCnt = 1;
         }
 
         if(loopFlag) {
@@ -371,8 +390,8 @@ public class Decide {
             /* 구매 완료 판매 개시 */
             if (String.valueOf(priceMap.get(currency + "search")).equals("1")) {
                 log.debug("구매 완료 판매 개시");
-                /*판매 금액 - 현금액의 3%제외한 금액*/
-                String min_money = Util.getMinMoney((String) priceMap.get(currency + "price"), 3);
+                /*판매 금액 - 현금액의 2%제외한 금액*/
+                String min_money = Util.getMinMoney((String) priceMap.get(currency + "price"), 1.5);
                 log.debug("최소금액 : " + min_money);
 
                 if (Integer.parseInt(bid_price1) < Integer.parseInt(min_money)) { /*매수 금액 이 최소금액 보다 작을때 현재 코인 판매*/
