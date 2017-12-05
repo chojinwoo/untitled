@@ -84,21 +84,21 @@ public class Main {
         log.debug("------------------------------------------------------------------------------------------");
     };
 
-    static Runnable bch = () -> {
+    static Runnable dash = () -> {
         String threadName = Thread.currentThread().getName();
         Call call = new Call();
         Decide decide = new Decide();
-        JSONObject config = call.getConfig("BCH");
+        JSONObject config = call.getConfig("DASH");
         config.put("useCurrency", useCurrency);
         decide.pattern3(config, priceMap);
         log.debug("------------------------------------------------------------------------------------------");
     };
 
-    static Runnable xrp = () -> {
+    static Runnable ltc = () -> {
         String threadName = Thread.currentThread().getName();
         Call call = new Call();
         Decide decide = new Decide();
-        JSONObject config = call.getConfig("XRP");
+        JSONObject config = call.getConfig("LTC");
         config.put("useCurrency", useCurrency);
         decide.pattern3(config, priceMap);
         log.debug("------------------------------------------------------------------------------------------");
@@ -114,11 +114,61 @@ public class Main {
         log.debug("------------------------------------------------------------------------------------------");
     };
 
+    static Runnable xrp = () -> {
+        String threadName = Thread.currentThread().getName();
+        Call call = new Call();
+        Decide decide = new Decide();
+        JSONObject config = call.getConfig("XRP");
+        config.put("useCurrency", useCurrency);
+        decide.pattern3(config, priceMap);
+        log.debug("------------------------------------------------------------------------------------------");
+    };
+
+    static Runnable bch = () -> {
+        String threadName = Thread.currentThread().getName();
+        Call call = new Call();
+        Decide decide = new Decide();
+        JSONObject config = call.getConfig("BCH");
+        config.put("useCurrency", useCurrency);
+        decide.pattern3(config, priceMap);
+        log.debug("------------------------------------------------------------------------------------------");
+    };
+
     static Runnable xmr = () -> {
         String threadName = Thread.currentThread().getName();
         Call call = new Call();
         Decide decide = new Decide();
         JSONObject config = call.getConfig("XMR");
+        config.put("useCurrency", useCurrency);
+        decide.pattern3(config, priceMap);
+        log.debug("------------------------------------------------------------------------------------------");
+    };
+
+    static Runnable zec = () -> {
+        String threadName = Thread.currentThread().getName();
+        Call call = new Call();
+        Decide decide = new Decide();
+        JSONObject config = call.getConfig("ZEC");
+        config.put("useCurrency", useCurrency);
+        decide.pattern3(config, priceMap);
+        log.debug("------------------------------------------------------------------------------------------");
+    };
+
+    static Runnable qtum = () -> {
+        String threadName = Thread.currentThread().getName();
+        Call call = new Call();
+        Decide decide = new Decide();
+        JSONObject config = call.getConfig("QTUM");
+        config.put("useCurrency", useCurrency);
+        decide.pattern3(config, priceMap);
+        log.debug("------------------------------------------------------------------------------------------");
+    };
+
+    static Runnable btg = () -> {
+        String threadName = Thread.currentThread().getName();
+        Call call = new Call();
+        Decide decide = new Decide();
+        JSONObject config = call.getConfig("BTG");
         config.put("useCurrency", useCurrency);
         decide.pattern3(config, priceMap);
         log.debug("------------------------------------------------------------------------------------------");
@@ -152,16 +202,31 @@ public class Main {
                         case "ETH":
                             thread.add(new Thread(eth));
                             break;
-                        case "BCH":
-                            thread.add(new Thread(bch));
+                        case "DASH":
+                            thread.add(new Thread(dash));
                             break;
-                        case "XRP":
-                            thread.add(new Thread(xrp));
+                        case "LTC":
+                            thread.add(new Thread(dash));
                             break;
                         case "ETC":
                             thread.add(new Thread(etc));
                             break;
+                        case "XRP":
+                            thread.add(new Thread(xrp));
+                            break;
+                        case "BCH":
+                            thread.add(new Thread(bch));
+                            break;
                         case "XMR":
+                            thread.add(new Thread(xmr));
+                            break;
+                        case "ZEC":
+                            thread.add(new Thread(xrp));
+                            break;
+                        case "QTUM":
+                            thread.add(new Thread(bch));
+                            break;
+                        case "BTG":
                             thread.add(new Thread(xmr));
                             break;
                     }
